@@ -1623,9 +1623,9 @@ from src.licenses import license_status, license_spdx
 RAW_DIR = pathlib.Path("raw/hf_injections")
 
 SPECS = [
-    ("hf_deepset", "deepset.csv", "text", "label", "ok", "Apache-2.0"),
-    ("hf_jayavibhav", "jayavibhav.csv", "prompt", "is_injection", "needs_confirmation", "none"),
-    ("hf_imoxto", "imoxto.csv", "text", "injection", "needs_confirmation", "none"),
+    ("hf_deepset", "deepset.csv", "text", "label"),
+    ("hf_jayavibhav", "jayavibhav.csv", "prompt", "is_injection"),
+    ("hf_imoxto", "imoxto.csv", "text", "injection"),
 ]
 
 def _truthy(v):
@@ -1634,7 +1634,7 @@ def _truthy(v):
 def main():
     d = RAW_DIR if RAW_DIR.exists() else pathlib.Path("tests/fixtures/hf")
     recs = []
-    for src_key, fname, text_col, lab_col, lst, spdx in SPECS:
+    for src_key, fname, text_col, lab_col in SPECS:
         f = d / fname
         if not f.exists(): continue
         with f.open() as fh:
@@ -1644,7 +1644,7 @@ def main():
                 mal = _truthy(row.get(lab_col))
                 recs.append(make_record(
                     _raw_id=f"{src_key}_{i}", source_dataset=src_key,
-                    license=spdx, license_status=lst,
+                    license=license_spdx(src_key), license_status=license_status(src_key),
                     modality="single_turn",
                     turns=[make_turn("user", text, "user_direct")],
                     structured_action={"action_type": "unknown", "target_resource": None, "stated_purpose": None},
