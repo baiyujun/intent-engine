@@ -18,3 +18,7 @@ hf_imoxto:       {license_spdx: none,      license_status: needs_confirmation, v
 llamafirewall_rules: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 under PurpleLlama custom license"}
 mitre_attack_samples: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 ATT&CK Terms of Use; taxonomy use ok, sample derivation needs confirmation"}
 near_dup_pairs:   {license_spdx: own,        license_status: ok,                 verified: "self-generated"}
+
+holdout_families: [shell_spawn, privilege_escalation, advbench_gcg]
+split_ratio: {train: 0.8, val: 0.1, test_indist: 0.1}
+leakage_threshold: 0.85
