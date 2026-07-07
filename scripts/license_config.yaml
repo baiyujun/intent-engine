@@ -17,3 +17,4 @@ hf_jayavibhav:    {license_spdx: none,      license_status: needs_confirmation, 
 hf_imoxto:       {license_spdx: none,      license_status: needs_confirmation, verified: "2026-07-07 no license tag on HF"}
 llamafirewall_rules: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 under PurpleLlama custom license"}
 mitre_attack_samples: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 ATT&CK Terms of Use; taxonomy use ok, sample derivation needs confirmation"}
+near_dup_pairs:   {license_spdx: own,        license_status: ok,                 verified: "self-generated"}
