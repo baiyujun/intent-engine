@@ -13,7 +13,7 @@
   },
   "rjudge": {
     "fetch": "ok",
-    "normalize": "fail:AttributeError"
+    "normalize": "ok"
   },
   "purplellama": {
     "fetch": "ok",
@@ -44,12 +44,12 @@
     "normalize": "ok"
   },
   "clawsentry_rules": {
-    "fetch": "fail:FileNotFoundError",
+    "fetch": "ok",
     "normalize": "ok"
   },
   "llamafirewall_rules": {
     "fetch": "ok",
-    "normalize": "fail:AttributeError"
+    "normalize": "ok"
   },
   "owasp": {
     "fetch": "ok"

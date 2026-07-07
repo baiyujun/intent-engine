@@ -1,14 +1,16 @@
 {
   "advbench": 520,
-  "agentdojo": 2,
+  "agentdojo": 183,
   "bipia": 0,
-  "clawsentry_rules": 6,
-  "gtfobins": 0,
-  "hf_injections": 0,
-  "injecagent": 0,
-  "jailbreakbench": 0,
+  "clawsentry_rules": 25,
+  "gtfobins": 920,
+  "hf_injections": 5000,
+  "injecagent": 2108,
+  "jailbreakbench": 1097,
+  "llamafirewall_rules": 113,
   "lolbas": 521,
   "mitre_attack_samples": 858,
   "near_dup_pairs": 16,
-  "purplellama": 0
+  "purplellama": 0,
+  "rjudge": 571
 }

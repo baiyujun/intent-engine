@@ -11,30 +11,36 @@
   },
   "leakage_threshold": 0.85,
   "sizes": {
-    "train": 414,
-    "val": 49,
-    "test_indist": 56,
-    "test_holdout_family": 510
+    "train": 2149,
+    "val": 267,
+    "test_indist": 275,
+    "test_holdout_family": 793
   },
-  "leakage_offenders_moved": 0,
+  "leakage_offenders_moved": 10,
   "distributions": {
     "train": {
-      "prompt_injection": 5,
-      "benign": 7,
-      "tool_misuse": 396,
+      "benign": 393,
+      "prompt_injection": 250,
+      "tool_misuse": 840,
+      "goal_hijack": 660,
       "reconnaissance": 6
     },
     "val": {
-      "tool_misuse": 49
+      "benign": 49,
+      "prompt_injection": 31,
+      "tool_misuse": 105,
+      "goal_hijack": 82
     },
     "test_indist": {
-      "prompt_injection": 2,
-      "tool_misuse": 50,
-      "benign": 2,
+      "benign": 50,
+      "prompt_injection": 32,
+      "tool_misuse": 107,
+      "goal_hijack": 84,
       "reconnaissance": 2
     },
     "holdout": {
-      "goal_hijack": 510
+      "goal_hijack": 510,
+      "tool_misuse": 283
     }
   }
 }
