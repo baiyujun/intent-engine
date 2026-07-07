@@ -6,7 +6,7 @@
 
 **Architecture:** Approach A — per-source standalone `fetch_<source>.py` (idempotently fills `raw/<source>/`) + `normalize_<source>.py` (overwrites `processed/per_source/<source>.jsonl`) + thin `merge_unified.py`; linear `dedup.py → split.py → build_report.py`; `synth_generate.py` as a side branch; `run_pipeline.py` + `Makefile` orchestrate with `--sources` selection and resume-on-failure. A shared `schema.py` defines the unified record + validation; `license_config.yaml` drives the conservative license gate.
 
-**Tech Stack:** Python 3.12, venv, `requests`, `datasets`, `huggingface_hub`, `sentence-transformers` (+torch), `numpy`, `pandas`, `scikit-learn`, `matplotlib`, `pyyaml`, `mitreattack-python` (optional). Git for commits.
+**Tech Stack:** Python 3.12, venv, `requests`, `datasets`, `huggingface_hub`, `numpy`, `pandas`, `scikit-learn`, `matplotlib`, `pyyaml`. `sentence-transformers` (+torch) is an OPTIONAL embedding backend via `requirements-extras.txt`; `dedup.py`/`split.py` fall back to TF-IDF without it. MITRE ATT&CK is parsed as raw STIX JSON (no `mitreattack-python` dependency). Git for commits.
 
 ## Global Constraints
 
@@ -17,6 +17,8 @@
 - **Never bypass access limits**: rate limits, auth gates, ToU agreements → log to `reports/fetch_errors.log` + skip. JailbreakBench artifacts needing ToU acceptance → skip if not programmatically acceptable.
 - **Local-only / defensive context**: fetch from public repos/HF into local `raw/`; no third-party live systems.
 - **Reproducibility**: pinned `requirements.txt`; `source_ref` per record; `fetch_manifest.json` with `fetched_at` per source for incremental refresh; scripts re-runnable (per-source slices overwritten, not appended).
+- **Embedding backend optional**: `sentence-transformers`/`torch` live in `requirements-extras.txt` (best-effort install). `dedup.py`/`split.py` use a TF-IDF/MinHash fallback when absent — never block the pipeline on torch.
+- **Path accessors, not import-bound constants**: `src/normalize_utils.py` exposes `processed_dir()`/`per_source_dir()`/`reports_dir()` reading the live module-level `ROOT`, so tests redirect the whole tree with `monkeypatch.setattr(normalize_utils, "ROOT", tmp_path)`. Scripts MUST use these accessors (not `from ... import PROCESSED`) so test isolation holds.
 - **Schema**: spec's unified schema + 3 added fields (`license_status`, `source_ref`, `label.attack_stage_precursor`). See Task 2 for the canonical definition.
 - **TDD**: every task writes a failing test first (pytest), runs it to confirm failure, implements minimal code to pass, runs to confirm pass, then commits. Tests live in `tests/`.
 - **Commits**: end each task with a commit; messages `feat:`/`fix:`/`test:`/`docs:`/`chore:`; append `Co-Authored-By: Claude Opus 4.8 <noreply@owtffssent.com>`.
@@ -103,6 +105,7 @@ dataset/
 
 **Files:**
 - Create: `/home/hjy/dataset/requirements.txt`
+- Create: `/home/hjy/dataset/requirements-extras.txt`
 - Create: `/home/hjy/dataset/Makefile`
 - Create: `/home/hjy/dataset/README.md`
 - Create: `/home/hjy/dataset/pytest.ini`
@@ -112,7 +115,7 @@ dataset/
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: a working venv with pinned deps; `make` targets `install`/`test`/`pipeline`; pytest configured to discover `tests/` and import `src.`
+- Produces: a working venv with pinned core deps; `make` targets `install`/`install-extras`/`test`/`pipeline`; pytest configured to discover `tests/` and import `src.`
 
 - [ ] **Step 1: Create the venv and write requirements.txt**
 
@@ -123,29 +126,34 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 ```
 
-Write `requirements.txt`:
+Write `requirements.txt` (core — no torch, always installs):
 ```
 requests==2.32.3
 datasets==2.21.0
 huggingface_hub==0.25.2
-sentence-transformers==3.1.1
 numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.5.2
 matplotlib==3.9.2
 pyyaml==6.0.2
-mitreattack-python==0.0.14
 pytest==8.3.3
 ```
-(If any exact version is unavailable on PyPI, relax to the nearest compatible `==` and note in README. sentence-transformers pulls `torch` transitively.)
+
+Write `requirements-extras.txt` (optional embedding backend — pulls torch ~1GB; best-effort, dedup/split fall back to TF-IDF if absent):
+```
+sentence-transformers==3.1.1
+```
+(If any exact version is unavailable on PyPI, relax to the nearest compatible `==` and note in README.)
 
 - [ ] **Step 2: Install deps**
 
 ```bash
 source .venv/bin/activate
 python3 -m pip install -r requirements.txt
+# best-effort embedding backend (torch ~1GB, may take minutes). Do NOT block on it.
+python3 -m pip install -r requirements-extras.txt || echo "extras install failed; pipeline will use TF-IDF fallback"
 ```
-Expected: all install; `python3 -c "import sentence_transformers, datasets, matplotlib, sklearn, pandas, yaml; print('ok')"` prints `ok`.
+Expected: core installs and `python3 -c "import datasets, matplotlib, sklearn, pandas, yaml; print('ok')"` prints `ok`. sentence-transformers/torch may or may not install — the pipeline degrades to TF-IDF if absent; never block on torch.
 
 - [ ] **Step 3: Write pytest.ini + conftest + package inits**
 
@@ -174,13 +182,16 @@ PIP := .venv/bin/pip
 install:
 	$(PIP) install -r requirements.txt
 
+install-extras:
+	-$(PIP) install -r requirements-extras.txt
+
 test:
 	$(PY) -m pytest
 
-pipeline:
+pipeline: install install-extras
 	$(PY) scripts/run_pipeline.py --all
 
-.PHONY: install test pipeline
+.PHONY: install install-extras test pipeline
 ```
 
 - [ ] **Step 5: Write README.md (reproduce steps)**
@@ -192,7 +203,7 @@ Reproducible pipeline for an Agent intent-recognition training/eval dataset.
 
 ## Reproduce
 1. `python3 -m venv .venv && source .venv/bin/activate`
-2. `pip install -r requirements.txt`
+2. `pip install -r requirements.txt` (core). Optionally `pip install -r requirements-extras.txt` for embedding-based dedup (pulls torch ~1GB); without it dedup/split use TF-IDF.
 3. `make pipeline`  (or `python3 scripts/run_pipeline.py --all`)
 4. Outputs: `processed/{train,val,test_indist,test_holdout_family}.jsonl`, `reports/data_card.md`, `reports/coverage_gaps.md`
 
@@ -217,7 +228,7 @@ Expected: `no tests ran` (exit 5 is fine — collection works).
 - [ ] **Step 7: Commit**
 
 ```bash
-git add requirements.txt Makefile README.md pytest.ini src/__init__.py tests/__init__.py tests/conftest.py
+git add requirements.txt requirements-extras.txt Makefile README.md pytest.ini src/__init__.py tests/__init__.py tests/conftest.py
 git commit -m "chore: project scaffolding (venv, requirements, pytest, Makefile, README)
 
 Co-Authored-By: Claude Opus 4.8 <noreply@owtffssent.com>"
@@ -317,9 +328,21 @@ ALLOWED_LICENSE_STATUS = {"ok", "needs_confirmation", "excluded"}
 ALLOWED_CONFIDENCE = {"high", "medium", "low"}
 
 def deterministic_id(source: str, raw_id, canonical: str | None = None) -> str:
-    key = str(raw_id) if raw_id is not None else "h" + hashlib.sha1((canonical or "").encode()).hexdigest()[:12]
+    # Treat None and empty-string raw_id the same: fall back to a hash of
+    # canonical text so records without a native id still get a unique, stable id.
+    if raw_id is None or str(raw_id).strip() == "":
+        key = "h" + hashlib.sha1((canonical or "").encode()).hexdigest()[:12]
+    else:
+        key = str(raw_id)
     safe = key.replace("/", "_").replace(" ", "_")
     return f"{source}_{safe}"
+
+def _canonical_key(kw) -> str:
+    parts = [t.get("raw_text", "") for t in kw.get("turns", [])]
+    sa = kw.get("structured_action", {})
+    if sa.get("target_resource"): parts.append(str(sa["target_resource"]))
+    if sa.get("stated_purpose"): parts.append(str(sa["stated_purpose"]))
+    return " \n ".join(p for p in parts if p)
 
 def make_record(**kw) -> dict:
     """Build a record filling schema defaults for optional fields."""
@@ -334,7 +357,12 @@ def make_record(**kw) -> dict:
     kw.setdefault("notes", None)
     kw.setdefault("modality", "single_turn")
     if "id" not in kw and "source_dataset" in kw:
-        kw["id"] = deterministic_id(kw["source_dataset"], kw.get("_raw_id"))
+        rid = kw.get("_raw_id")
+        # No usable raw id -> derive a canonical key from turns+action so the
+        # generated id is unique per content (avoids id collisions for records
+        # whose source has no native id, e.g. some R-Judge/MITRE rows).
+        canonical = None if (rid is not None and str(rid) != "") else _canonical_key(kw)
+        kw["id"] = deterministic_id(kw["source_dataset"], rid, canonical)
         kw.pop("_raw_id", None)
     return kw
 
@@ -688,14 +716,25 @@ Expected: FAIL — module not found
 - [ ] **Step 3: Implement `src/normalize_utils.py`**
 
 ```python
-"""Shared normalize helpers: per-source slice I/O, JSONL streaming."""
+"""Shared normalize helpers: per-source slice I/O, JSONL streaming.
+
+All paths derive from the live module-level ROOT via accessor functions, so
+tests can redirect the whole tree with monkeypatch.setattr(normalize_utils,
+"ROOT", tmp_path) — no path constants are bound at import time."""
 import json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-PROCESSED = ROOT / "processed"
-PER_SOURCE = PROCESSED / "per_source"
+
+def processed_dir() -> pathlib.Path:
+    return ROOT / "processed"
+
+def per_source_dir() -> pathlib.Path:
+    return processed_dir() / "per_source"
+
+def reports_dir() -> pathlib.Path:
+    return ROOT / "reports"
 
 def slice_path(source_key: str) -> pathlib.Path:
-    return PER_SOURCE / f"{source_key}.jsonl"
+    return per_source_dir() / f"{source_key}.jsonl"
 
 def make_turn(role: str, text: str, origin: str, idx: int = 0) -> dict:
     return {"turn_index": idx, "role": role, "raw_text": text, "instruction_origin": origin}
@@ -2559,23 +2598,21 @@ Expected: FAIL — module not found
 ```python
 """Merge all per_source slices -> processed/unified.jsonl (overwrite)."""
 import json, pathlib
-from src.normalize_utils import iter_jsonl, PER_SOURCE, PROCESSED, slice_path
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-REPORTS = ROOT / "reports"
+from src.normalize_utils import iter_jsonl, per_source_dir, processed_dir, reports_dir
 
 def main():
-    PROCESSED.mkdir(parents=True, exist_ok=True)
-    out = PROCESSED / "unified.jsonl"
+    pd = processed_dir(); pd.mkdir(parents=True, exist_ok=True)
+    out = pd / "unified.jsonl"
     counts = {}
     with out.open("w") as f:
-        for p in sorted(PER_SOURCE.glob("*.jsonl")):
+        for p in sorted(per_source_dir().glob("*.jsonl")):
             src = p.stem
             n = 0
             for r in iter_jsonl(p):
                 f.write(json.dumps(r, ensure_ascii=False) + "\n"); n += 1
             counts[src] = n
-    REPORTS.mkdir(parents=True, exist_ok=True)
-    (REPORTS / "unified_count.json").write_text(json.dumps(counts, indent=2))
+    rep = reports_dir(); rep.mkdir(parents=True, exist_ok=True)
+    (rep / "unified_count.json").write_text(json.dumps(counts, indent=2))
     return out
 if __name__ == "__main__": main()
 ```
@@ -2651,9 +2688,7 @@ Expected: FAIL — module not found
 import json, pathlib, os
 import numpy as np
 from src.schema import canonical_text
-from src.normalize_utils import iter_jsonl, write_jsonl, PROCESSED
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-REPORTS = ROOT / "reports"
+from src.normalize_utils import iter_jsonl, write_jsonl, processed_dir, reports_dir
 THRESH = float(os.environ.get("DEDUP_THRESHOLD", "0.92"))
 MODEL = os.environ.get("DEDUP_EMBED_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
 CONF_RANK = {"high": 3, "medium": 2, "low": 1}
@@ -2673,7 +2708,7 @@ def _embed(texts):
 def _key(r): return r["label"]["attack_family"] if r["label"]["is_malicious"] else "benign_global"
 
 def _cluster_keep(records):
-    if len(records) <= 1: return records, 0
+    if len(records) <= 1: return records, 0, None
     embs, method = _embed([canonical_text(r) for r in records])
     sim = embs @ embs.T
     keep, removed = [], 0
@@ -2682,36 +2717,36 @@ def _cluster_keep(records):
             # near-dup; keep representative with higher confidence then lower id
             for k in keep:
                 if sim[i][k] >= THRESH:
-                    kc, ic = CONF_RANK.get(records[k]["label"]["confidence"],0), CONF_RANK.get(r["label"]["confidence"],0)
+                    kc = CONF_RANK.get(records[k]["label"]["confidence"], 0)
+                    ic = CONF_RANK.get(r["label"]["confidence"], 0)
                     if ic > kc or (ic == kc and r["id"] < records[k]["id"]):
                         keep[keep.index(k)] = i
                     removed += 1
                     break
         else:
             keep.append(i)
-    return [records[i] for i in keep], removed
+    return [records[i] for i in keep], removed, method
 
 def main():
-    src = PROCESSED / "unified.jsonl"
+    src = processed_dir() / "unified.jsonl"
     records = list(iter_jsonl(src))
     by_fam = {}
     for r in records: by_fam.setdefault(_key(r), []).append(r)
-    kept, removed_total = [], 0
-    per_family, method = {}, None
+    kept, removed_total, method = [], 0, None
+    per_family = {}
     for fam, recs in by_fam.items():
-        k, rm = _cluster_keep(recs)
+        k, rm, m = _cluster_keep(recs)
         kept.extend(k); per_family[fam] = {"kept": len(k), "removed": rm}
         removed_total += rm
-        if method is None and len(recs) > 1:
-            _, method = _embed([canonical_text(r) for r in recs[:2]])
+        if m and not method: method = m
     method = method or "tfidf"
     kept.sort(key=lambda r: r["id"])
-    out = PROCESSED / "unified_dedup.jsonl"
+    out = processed_dir() / "unified_dedup.jsonl"
     write_jsonl(out, kept)
-    REPORTS.mkdir(parents=True, exist_ok=True)
+    rep = reports_dir(); rep.mkdir(parents=True, exist_ok=True)
     per_source = {}
-    for r in kept: per_source[r["source_dataset"]] = per_source.get(r["source_dataset"],0)+1
-    (REPORTS / "dedup_report.json").write_text(json.dumps({
+    for r in kept: per_source[r["source_dataset"]] = per_source.get(r["source_dataset"], 0) + 1
+    (rep / "dedup_report.json").write_text(json.dumps({
         "method": method, "threshold": THRESH, "model": MODEL,
         "input": len(records), "kept": len(kept), "removed": removed_total,
         "per_family": per_family, "per_source_kept": per_source}, indent=2))
@@ -2801,10 +2836,8 @@ import json, pathlib, random
 import numpy as np
 import yaml
 from src.schema import canonical_text
-from src.normalize_utils import iter_jsonl, write_jsonl, PROCESSED
+from src.normalize_utils import iter_jsonl, write_jsonl, processed_dir, reports_dir
 from src.licenses import load_license_config
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-REPORTS = ROOT / "reports"
 
 def _embed(texts):
     try:
@@ -2822,7 +2855,7 @@ def main():
     hold = set(cfg.get("holdout_families", []))
     ratio = cfg.get("split_ratio", {"train":0.8,"val":0.1,"test_indist":0.1})
     leak = float(cfg.get("leakage_threshold", 0.85))
-    recs = [r for r in iter_jsonl(PROCESSED/"unified_dedup.jsonl") if r.get("license_status")=="ok"]
+    recs = [r for r in iter_jsonl(processed_dir()/"unified_dedup.jsonl") if r.get("license_status")=="ok"]
     hold_recs = [r for r in recs if r["label"]["attack_family"] in hold]
     in_recs = [r for r in recs if r["label"]["attack_family"] not in hold]
     # stratified by risk_category
@@ -2851,11 +2884,11 @@ def main():
             moved = len(train)-len(new_train); train = new_train
     for name, lst in (("train",train),("val",val),("test_indist",testi),("test_holdout_family",hold_recs)):
         lst.sort(key=lambda r: r["id"])
-        write_jsonl(PROCESSED/f"{name}.jsonl", lst)
-    REPORTS.mkdir(parents=True, exist_ok=True)
+        write_jsonl(processed_dir()/f"{name}.jsonl", lst)
+    rep = reports_dir(); rep.mkdir(parents=True, exist_ok=True)
     def dist(lst):
         d={}; [d.__setitem__(r["label"]["risk_category"], d.get(r["label"]["risk_category"],0)+1) for r in lst]; return d
-    (REPORTS/"split_report.json").write_text(json.dumps({
+    (rep/"split_report.json").write_text(json.dumps({
         "holdout_families": sorted(hold), "ratio": ratio, "leakage_threshold": leak,
         "sizes": {"train":len(train),"val":len(val),"test_indist":len(testi),"test_holdout_family":len(hold_recs)},
         "leakage_offenders_moved": moved,
@@ -3077,18 +3110,16 @@ Expected: FAIL — module not found
 """Build data_card.md + coverage_gaps.md + distribution figures."""
 import json, pathlib, collections
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-from src.normalize_utils import iter_jsonl, PROCESSED
+from src.normalize_utils import iter_jsonl, processed_dir, reports_dir
 from src.licenses import load_license_config
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-REPORTS = ROOT / "reports"; FIG = REPORTS / "figures"
 
 def _all_records():
-    p = PROCESSED/"unified.jsonl"
+    p = processed_dir()/"unified.jsonl"
     return list(iter_jsonl(p)) if p.exists() else []
 
 def _bar(counter, title, path):
-    FIG.mkdir(parents=True, exist_ok=True)
     if not counter: return
+    path = pathlib.Path(path); path.parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(8,4)); plt.bar(list(counter.keys()), list(counter.values()))
     plt.title(title); plt.xticks(rotation=30, ha="right"); plt.tight_layout()
     plt.savefig(path, dpi=110); plt.close()
@@ -3103,14 +3134,17 @@ def main():
     by_ls = collections.Counter(r["license_status"] for r in recs)
     n_mal = sum(1 for r in recs if r["label"]["is_malicious"])
     n_prec = sum(1 for r in recs if r["label"].get("attack_stage_precursor"))
-    _bar(by_cat, "risk_category", FIG/"risk_category.png")
-    _bar(by_fam, "attack_family", FIG/"attack_family.png")
-    _bar(by_origin, "instruction_origin", FIG/"instruction_origin.png")
+    fig = reports_dir()/"figures"
+    _bar(by_cat, "risk_category", fig/"risk_category.png")
+    _bar(by_fam, "attack_family", fig/"attack_family.png")
+    _bar(by_origin, "instruction_origin", fig/"instruction_origin.png")
     # per-split sizes
-    splits = {n: sum(1 for _ in iter_jsonl(PROCESSED/f"{n}.jsonl"))
-              for n in ("train","val","test_indist","test_holdout_family") if (PROCESSED/f"{n}.jsonl").exists()}
+    pd = processed_dir()
+    splits = {n: sum(1 for _ in iter_jsonl(pd/f"{n}.jsonl"))
+              for n in ("train","val","test_indist","test_holdout_family") if (pd/f"{n}.jsonl").exists()}
     manifest = {}
-    mp = REPORTS/"fetch_manifest.json"
+    rep = reports_dir()
+    mp = rep/"fetch_manifest.json"
     if mp.exists(): manifest = json.loads(mp.read_text())
     lines = ["# Data Card — Agent Intent-Recognition Dataset v0\n",
              "## Per-source counts (unified.jsonl)\n",
@@ -3128,7 +3162,7 @@ def main():
               "\n## Splits", json.dumps(splits, indent=2),
               "\n## Figures", "- reports/figures/risk_category.png", "- reports/figures/attack_family.png",
               "- reports/figures/instruction_origin.png"]
-    (REPORTS/"data_card.md").write_text("\n".join(lines))
+    (rep/"data_card.md").write_text("\n".join(lines))
     gaps = ["# Coverage Gaps — v0\n",
             "- **Languages**: English-heavy; Chinese/other-language samples limited (multilingual dedup model used, but source coverage is EN).",
             "- **Modalities**: text-only unless BIPIA multimodal present; no audio/vision pipeline.",
@@ -3138,7 +3172,7 @@ def main():
             "- **JailbreakBench/AdvBench domain gap**: general content-safety jailbreaks, not Agent action-risk; per-source ablation recommended; samples carry the domain-gap note.",
             "- **GTFOBins/LOLBAS**: command patterns only — no complete payloads (by design).",
             "- **Skipped sources**: see reports/fetch_errors.log for any fetch that failed (network/rate-limit/ToU)."]
-    (REPORTS/"coverage_gaps.md").write_text("\n".join(gaps))
+    (rep/"coverage_gaps.md").write_text("\n".join(gaps))
 if __name__ == "__main__": main()
 ```
 
