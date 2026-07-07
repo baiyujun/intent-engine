@@ -1989,14 +1989,28 @@ def _frontmatter(text):
     m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
     return yaml.safe_load(m.group(1)) if m else {}
 
+def _load_entries(f):
+    """GTFOBins real files are _gtfobins/*.md with --- YAML frontmatter; fixtures are *.yml/*.yaml (pure YAML)."""
+    text = f.read_text()
+    if f.suffix.lower() == ".md":
+        fm = _frontmatter(text)
+        return [fm] if fm else []
+    data = yaml.safe_load(text)
+    if isinstance(data, dict):
+        return [data]
+    return data or []
+
 def main():
     d = RAW_DIR if RAW_DIR.exists() else pathlib.Path("tests/fixtures/gtfobins")
     recs = []
-    for f in d.rglob("*.yml"):
-        try: data = yaml.safe_load(f.read_text())
-        except Exception: continue
-        if isinstance(data, dict): data = [data]
-        for entry in data:
+    for f in d.rglob("*"):
+        if f.suffix.lower() not in (".md", ".yml", ".yaml"):
+            continue
+        try:
+            entries = _load_entries(f)
+        except Exception:
+            continue
+        for entry in entries:
             binary = entry.get("name", f.stem)
             for func, items in (entry.get("functions") or {}).items():
                 for it in (items or []):
