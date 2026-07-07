@@ -1974,7 +1974,7 @@ if __name__ == "__main__": main()
 ```python
 """Normalize GTFOBins _gtfobins/*.md YAML frontmatter -> unified records.
 Command patterns only. action_type=exec, attack_family from function category."""
-import re, pathlib, yaml
+import re, pathlib, yaml, hashlib
 from src.schema import make_record, deterministic_id, validate_record
 from src.normalize_utils import write_slice, make_turn
 from src.licenses import license_status, license_spdx
@@ -2003,7 +2003,7 @@ def main():
                     code = it.get("code") or ""
                     if not code: continue
                     recs.append(make_record(
-                        id=deterministic_id(SRC_KEY, f"{binary}#{func}#{hash(code)&0xffff}"),
+                        id=deterministic_id(SRC_KEY, f"{binary}#{func}#{hashlib.sha1(code.encode()).hexdigest()[:8]}"),
                         source_dataset=SRC_KEY, license=license_spdx(SRC_KEY), license_status=license_status(SRC_KEY),
                         modality="single_turn",
                         turns=[make_turn("agent_plan", code, "user_direct")],
@@ -2036,7 +2036,7 @@ if __name__ == "__main__": main()
 `scripts/normalize_lolbas.py`:
 ```python
 """Normalize LOLBAS YAML -> unified records. Command patterns only."""
-import pathlib, yaml
+import pathlib, yaml, hashlib
 from src.schema import make_record, deterministic_id, validate_record
 from src.normalize_utils import write_slice, make_turn
 from src.licenses import license_status, license_spdx
@@ -2060,7 +2060,7 @@ def main():
                 if not code: continue
                 cat = cmd.get("Category", "Execute")
                 recs.append(make_record(
-                    id=deterministic_id(SRC_KEY, f"{name}#{cat}#{hash(code)&0xffff}"),
+                    id=deterministic_id(SRC_KEY, f"{name}#{cat}#{hashlib.sha1(code.encode()).hexdigest()[:8]}"),
                     source_dataset=SRC_KEY, license=license_spdx(SRC_KEY), license_status=license_status(SRC_KEY),
                     modality="single_turn",
                     turns=[make_turn("agent_plan", code, "user_direct")],
@@ -2957,7 +2957,7 @@ Expected: FAIL — module not found
 - [ ] **Step 3: Implement** `scripts/synth_generate.py`:
 ```python
 """Synthetic generation: template engine + pluggable red-team LLM (dry-run default)."""
-import os, json, base64, pathlib
+import os, json, base64, pathlib, hashlib
 from src.schema import make_record, deterministic_id, validate_record
 from src.normalize_utils import write_jsonl
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -3010,7 +3010,7 @@ def _template_records():
         base = f"{atype.replace('_',' ')} on {target}"
         text = ph.format(a=base, o=ofn(base))
         recs.append(make_record(
-            id=deterministic_id("synthetic_template", f"{atype}#{oname}#{ph[:4]}#{hash(text)&0xffff}"),
+            id=deterministic_id("synthetic_template", f"{atype}#{oname}#{ph[:4]}#{hashlib.sha1(text.encode()).hexdigest()[:8]}"),
             source_dataset="synthetic_template", license="own", license_status="ok",
             modality="single_turn",
             turns=[{"turn_index":0,"role":"user","raw_text":text,"instruction_origin":"user_direct"}],
@@ -3030,7 +3030,7 @@ def main():
     for s in seeds:
         for i, v in enumerate(client.rewrite_to_bypass(s)):
             rt.append(make_record(
-                id=deterministic_id("synthetic_redteam_dryrun", f"{hash(s)&0xffff}#{i}"),
+                id=deterministic_id("synthetic_redteam_dryrun", f"{hashlib.sha1(s.encode()).hexdigest()[:8]}#{i}"),
                 source_dataset="synthetic_redteam_dryrun", license="own", license_status="ok",
                 modality="single_turn",
                 turns=[{"turn_index":0,"role":"user","raw_text":v,"instruction_origin":"user_direct"}],
