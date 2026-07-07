@@ -1,0 +1,62 @@
+{
+  "method": "tfidf",
+  "threshold": 0.92,
+  "model": "paraphrase-multilingual-MiniLM-L12-v2",
+  "input": 1923,
+  "kept": 1824,
+  "removed": 99,
+  "per_family": {
+    "advbench_gcg": {
+      "kept": 510,
+      "removed": 10
+    },
+    "benign_global": {
+      "kept": 17,
+      "removed": 0
+    },
+    "indirect_injection_slack_message": {
+      "kept": 1,
+      "removed": 0
+    },
+    "command_injection": {
+      "kept": 3,
+      "removed": 0
+    },
+    "prompt_injection": {
+      "kept": 3,
+      "removed": 0
+    },
+    "code_exec": {
+      "kept": 377,
+      "removed": 23
+    },
+    "defense_evasion": {
+      "kept": 47,
+      "removed": 3
+    },
+    "network_request": {
+      "kept": 62,
+      "removed": 0
+    },
+    "reconnaissance": {
+      "kept": 4,
+      "removed": 0
+    },
+    "credential_access": {
+      "kept": 5,
+      "removed": 0
+    },
+    "mitre_technique_rewrite": {
+      "kept": 795,
+      "removed": 63
+    }
+  },
+  "per_source_kept": {
+    "advbench": 510,
+    "agentdojo": 2,
+    "clawsentry_rules": 6,
+    "lolbas": 495,
+    "mitre_attack_samples": 795,
+    "near_dup_pairs": 16
+  }
+}

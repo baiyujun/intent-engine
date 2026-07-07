@@ -1,0 +1,63 @@
+{
+  "agentdojo": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "injecagent": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "bipia": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "rjudge": {
+    "fetch": "ok",
+    "normalize": "fail:AttributeError"
+  },
+  "purplellama": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "hf_injections": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "jailbreakbench": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "advbench": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "gtfobins": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "lolbas": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "mitre_attack": {
+    "fetch": "ok",
+    "normalize": "ok"
+  },
+  "clawsentry_rules": {
+    "fetch": "fail:FileNotFoundError",
+    "normalize": "ok"
+  },
+  "llamafirewall_rules": {
+    "fetch": "ok",
+    "normalize": "fail:AttributeError"
+  },
+  "owasp": {
+    "fetch": "ok"
+  },
+  "near_dup_pairs": "ok",
+  "merge": "ok",
+  "dedup": "ok",
+  "split": "ok",
+  "synth": "ok",
+  "report": "ok"
+}
