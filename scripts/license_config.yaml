@@ -1,0 +1,19 @@
+# Conservative license gate. Only `ok` sources enter train/val/test.
+# Flip a source to `ok` (after legal sign-off) to release it into splits.
+agentdojo:        {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 raw repo LICENSE"}
+injecagent:       {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 raw file LICENCE on main (British spelling)"}
+jailbreakbench:  {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 repo pyproject.toml + JBB-Behaviors HF + artifacts README"}
+advbench:         {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 llm-attacks repo MIT"}
+gtfobins:         {license_spdx: GPL-3.0,    license_status: ok,                 verified: "2026-07-07 GitHub API; copyleft noted"}
+lolbas:           {license_spdx: GPL-3.0,    license_status: ok,                 verified: "2026-07-07 GitHub API; copyleft noted"}
+hf_deepset:       {license_spdx: Apache-2.0,license_status: ok,                 verified: "2026-07-07 HF tags license:apache-2.0"}
+clawsentry_rules: {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 AI45Lab/ClawSentry local clone"}
+owasp:            {license_spdx: OWASP-docs, license_status: ok,                 verified: "reference taxonomy only, no samples"}
+synthetic:        {license_spdx: own,       license_status: ok,                 verified: "self-generated"}
+bipia:            {license_spdx: custom,     license_status: needs_confirmation, verified: "2026-07-07 NOASSERTION (Microsoft custom)"}
+rjudge:           {license_spdx: none,       license_status: needs_confirmation, verified: "2026-07-07 no LICENSE file found"}
+purplellama:      {license_spdx: custom,     license_status: needs_confirmation, verified: "2026-07-07 Llama Community License"}
+hf_jayavibhav:    {license_spdx: none,      license_status: needs_confirmation, verified: "2026-07-07 no license tag on HF"}
+hf_imoxto:       {license_spdx: none,      license_status: needs_confirmation, verified: "2026-07-07 no license tag on HF"}
+llamafirewall_rules: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 under PurpleLlama custom license"}
+mitre_attack_samples: {license_spdx: custom, license_status: needs_confirmation, verified: "2026-07-07 ATT&CK Terms of Use; taxonomy use ok, sample derivation needs confirmation"}
