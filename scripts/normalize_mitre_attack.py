@@ -25,7 +25,7 @@ def main():
                 structured_action={"action_type": "unknown", "target_resource": None, "stated_purpose": None},
                 label={"risk_category": "other_unsafe", "is_malicious": True,
                        "attack_family": "mitre_technique_rewrite",
-                       "purpose_capability_consistent": None, "confidence": "low",
+                       "purpose_capability_consistent": False, "confidence": "low",  # technique rewrite, not purpose-consistent
                        "attack_stage_precursor": False},
                 notes=f"MITRE technique {tid} {o.get('name','')[:40]}; weak label; needs review"))
     recs = [r for r in recs if validate_record(r) == []]

@@ -25,6 +25,7 @@ def main():
     by_ls = collections.Counter(r["license_status"] for r in recs)
     n_mal = sum(1 for r in recs if r["label"]["is_malicious"])
     n_prec = sum(1 for r in recs if r["label"].get("attack_stage_precursor"))
+    n_near_dup = sum(1 for r in recs if r.get("source_dataset") == "near_dup_pairs")
     fig = reports_dir()/"figures"
     _bar(by_cat, "risk_category", fig/"risk_category.png")
     _bar(by_fam, "attack_family", fig/"attack_family.png")
@@ -49,7 +50,7 @@ def main():
               "\n## Distributions", f"risk_category: {dict(by_cat)}", f"attack_family: {dict(by_fam)}",
               f"instruction_origin: {dict(by_origin)}",
               "\n## Benign vs malicious", f"malicious={n_mal} benign={len(recs)-n_mal} precursor(not-mal)={n_prec}",
-              f"near-dup-pair+precursor share = {round((n_prec)/max(len(recs),1)*100,1)}%",
+              f"near_dup_pairs share = {round(n_near_dup/max(len(recs),1)*100,1)}% (precursor count={n_prec})",
               "\n## Splits", json.dumps(splits, indent=2),
               "\n## Figures", "- reports/figures/risk_category.png", "- reports/figures/attack_family.png",
               "- reports/figures/instruction_origin.png"]
@@ -62,6 +63,7 @@ def main():
             "- **License-held-out sources**: BIPIA, R-Judge, PurpleLlama CyberSecEval, jayavibhav, imoxto, LlamaFirewall rules, MITRE sample-derivation are in unified.jsonl but NOT in any split (needs_confirmation).",
             "- **JailbreakBench/AdvBench domain gap**: general content-safety jailbreaks, not Agent action-risk; per-source ablation recommended; samples carry the domain-gap note.",
             "- **GTFOBins/LOLBAS**: command patterns only — no complete payloads (by design).",
+            "- **Near-dup pairs**: v0 has 16 constructed pairs (~0.2% of unified); the spec §5 ≥10% target is unmet — deferred to v0.1 expansion (more benign-lookalike + precursor templates).",
             "- **Skipped sources**: see reports/fetch_errors.log for any fetch that failed (network/rate-limit/ToU)."]
     (rep/"coverage_gaps.md").write_text("\n".join(gaps))
 if __name__ == "__main__": main()

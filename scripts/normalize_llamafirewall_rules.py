@@ -12,7 +12,7 @@ def main():
     # Search for yaml/yml rule files under any llamafirewall dir; reuse same generator as clawsentry
     found = False
     for f in d.rglob("*.yaml"):
-        if "llamafirewall" not in str(f).lower() and not d.samefile(pathlib.Path("tests/fixtures/clawsentry_rules")):
+        if "llamafirewall" not in str(f).lower() and not str(d).endswith("tests/fixtures/clawsentry_rules"):
             continue
         try: data = yaml.safe_load(f.read_text())
         except Exception: continue

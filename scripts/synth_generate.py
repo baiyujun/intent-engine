@@ -1,7 +1,8 @@
 """Synthetic generation: template engine + pluggable red-team LLM (dry-run default)."""
-import os, json, base64, pathlib, hashlib
+import os, base64, pathlib, hashlib
 from src.schema import make_record, deterministic_id, validate_record
 from src.normalize_utils import write_jsonl
+from src.licenses import license_status, license_spdx
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SYN_DIR = ROOT / "synthetic"
 
@@ -53,7 +54,7 @@ def _template_records():
         text = ph.format(a=base, o=ofn(base))
         recs.append(make_record(
             id=deterministic_id("synthetic_template", f"{atype}#{oname}#{ph[:4]}#{hashlib.sha1(text.encode()).hexdigest()[:8]}"),
-            source_dataset="synthetic_template", license="own", license_status="ok",
+            source_dataset="synthetic_template", license=license_spdx("synthetic_template"), license_status=license_status("synthetic_template"),
             modality="single_turn",
             turns=[{"turn_index":0,"role":"user","raw_text":text,"instruction_origin":"user_direct"}],
             structured_action={"action_type":atype,"target_resource":target,"stated_purpose":"debugging"},
@@ -73,7 +74,7 @@ def main():
         for i, v in enumerate(client.rewrite_to_bypass(s)):
             rt.append(make_record(
                 id=deterministic_id("synthetic_redteam_dryrun", f"{hashlib.sha1(s.encode()).hexdigest()[:8]}#{i}"),
-                source_dataset="synthetic_redteam_dryrun", license="own", license_status="ok",
+                source_dataset="synthetic_redteam_dryrun", license=license_spdx("synthetic_redteam_dryrun"), license_status=license_status("synthetic_redteam_dryrun"),
                 modality="single_turn",
                 turns=[{"turn_index":0,"role":"user","raw_text":v,"instruction_origin":"user_direct"}],
                 structured_action={"action_type":"exec","target_resource":None,"stated_purpose":None},

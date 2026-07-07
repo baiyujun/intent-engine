@@ -10,6 +10,8 @@ hf_deepset:       {license_spdx: Apache-2.0,license_status: ok,                 
 clawsentry_rules: {license_spdx: MIT,        license_status: ok,                 verified: "2026-07-07 AI45Lab/ClawSentry local clone"}
 owasp:            {license_spdx: OWASP-docs, license_status: ok,                 verified: "reference taxonomy only, no samples"}
 synthetic:        {license_spdx: own,       license_status: ok,                 verified: "self-generated"}
+synthetic_template:      {license_spdx: own,       license_status: ok,                 verified: "self-generated"}
+synthetic_redteam_dryrun: {license_spdx: own,     license_status: ok,                 verified: "self-generated"}
 bipia:            {license_spdx: custom,     license_status: needs_confirmation, verified: "2026-07-07 NOASSERTION (Microsoft custom)"}
 rjudge:           {license_spdx: none,       license_status: needs_confirmation, verified: "2026-07-07 no LICENSE file found"}
 purplellama:      {license_spdx: custom,     license_status: needs_confirmation, verified: "2026-07-07 Llama Community License"}

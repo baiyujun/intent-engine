@@ -2,7 +2,6 @@
 Stratified by risk_category; holdout families fully excluded from train/val; leakage check."""
 import json, pathlib, random
 import numpy as np
-import yaml
 from src.schema import canonical_text
 from src.normalize_utils import iter_jsonl, write_jsonl, processed_dir, reports_dir
 from src.licenses import load_license_config

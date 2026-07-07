@@ -1,10 +1,16 @@
 import json, pathlib
 from src import normalize_utils
+from src import licenses
 from scripts import build_report
 
 def test_build_report_writes_files(monkeypatch, tmp_path):
     monkeypatch.setattr(normalize_utils, "ROOT", tmp_path, raising=False)
     monkeypatch.setattr(build_report, "ROOT", tmp_path, raising=False)
+    # Isolate the license gate from the real scripts/license_config.yaml
+    tmp_cfg = tmp_path / "license_config.yaml"
+    tmp_cfg.write_text("agentdojo: {license_spdx: MIT, license_status: ok, verified: test}\n")
+    monkeypatch.setattr(licenses, "_PATH", tmp_cfg)
+    monkeypatch.setattr(licenses, "_CONFIG", None)
     proc = tmp_path/"processed"; proc.mkdir()
     rec = lambda i, ls: {"id":f"r{i}","source_dataset":"agentdojo","license":"MIT","license_status":ls,
         "modality":"single_turn",

@@ -4,19 +4,19 @@
 
 | source | n | license | license_status | fetched_at | verified |
 |---|---|---|---|---|---|
-| advbench | 520 | MIT | ok | 2026-07-07T10:24:06Z | 2026-07-07 llm-attacks repo MIT |
-| agentdojo | 183 | MIT | ok | 2026-07-07T10:16:18Z | 2026-07-07 raw repo LICENSE |
+| advbench | 520 | MIT | ok | 2026-07-07T10:40:35Z | 2026-07-07 llm-attacks repo MIT |
+| agentdojo | 183 | MIT | ok | 2026-07-07T10:39:00Z | 2026-07-07 raw repo LICENSE |
 | clawsentry_rules | 25 | MIT | ok | - | 2026-07-07 AI45Lab/ClawSentry local clone |
-| gtfobins | 920 | GPL-3.0 | ok | 2026-07-07T10:24:07Z | 2026-07-07 GitHub API; copyleft noted |
+| gtfobins | 920 | GPL-3.0 | ok | 2026-07-07T10:40:36Z | 2026-07-07 GitHub API; copyleft noted |
 | hf_deepset | 662 | Apache-2.0 | ok | - | 2026-07-07 HF tags license:apache-2.0 |
 | hf_jayavibhav | 4338 | none | needs_confirmation | - | 2026-07-07 no license tag on HF |
-| injecagent | 2108 | MIT | ok | 2026-07-07T10:16:20Z | 2026-07-07 raw file LICENCE on main (British spelling) |
+| injecagent | 2108 | MIT | ok | 2026-07-07T10:39:02Z | 2026-07-07 raw file LICENCE on main (British spelling) |
 | jailbreakbench | 1097 | MIT | ok | - | 2026-07-07 repo pyproject.toml + JBB-Behaviors HF + artifacts README |
-| llamafirewall_rules | 113 | custom | needs_confirmation | 2026-07-07T10:24:13Z | 2026-07-07 under PurpleLlama custom license |
-| lolbas | 521 | GPL-3.0 | ok | 2026-07-07T10:24:09Z | 2026-07-07 GitHub API; copyleft noted |
+| llamafirewall_rules | 113 | custom | needs_confirmation | 2026-07-07T10:42:55Z | 2026-07-07 under PurpleLlama custom license |
+| lolbas | 521 | GPL-3.0 | ok | 2026-07-07T10:40:38Z | 2026-07-07 GitHub API; copyleft noted |
 | mitre_attack_samples | 858 | custom | needs_confirmation | - | 2026-07-07 ATT&CK Terms of Use; taxonomy use ok, sample derivation needs confirmation |
 | near_dup_pairs | 16 | own | ok | - | self-generated |
-| rjudge | 571 | none | needs_confirmation | 2026-07-07T10:16:22Z | 2026-07-07 no LICENSE file found |
+| rjudge | 571 | none | needs_confirmation | 2026-07-07T10:39:05Z | 2026-07-07 no LICENSE file found |
 
 ## license_status breakdown
 {'ok': 6052, 'needs_confirmation': 5880}
@@ -28,7 +28,7 @@ instruction_origin: {'user_direct': 14405, 'tool_output': 2162}
 
 ## Benign vs malicious
 malicious=8110 benign=3822 precursor(not-mal)=8
-near-dup-pair+precursor share = 0.1%
+near_dup_pairs share = 0.1% (precursor count=8)
 
 ## Splits
 {
