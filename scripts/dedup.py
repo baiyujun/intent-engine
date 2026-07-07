@@ -14,10 +14,10 @@ def _embed(texts):
         return np.asarray(m.encode(texts, normalize_embeddings=True)), "embedding"
     except Exception:
         from sklearn.feature_extraction.text import TfidfVectorizer
+        # norm='l2' (default) => rows are unit-normalized, so X @ X.T == cosine sim.
+        # Keep SPARSE to avoid an O(n × vocab) dense matrix; only the n×n sim is densified.
         v = TfidfVectorizer(analyzer="char_wb", ngram_range=(3,5), min_df=1)
-        X = v.fit_transform(texts).toarray()
-        norms = np.linalg.norm(X, axis=1, keepdims=True); norms[norms == 0] = 1
-        return (X / norms), "tfidf"
+        return v.fit_transform(texts), "tfidf"
 
 def _key(r): return r["label"]["attack_family"] if r["label"]["is_malicious"] else "benign_global"
 
@@ -25,6 +25,8 @@ def _cluster_keep(records):
     if len(records) <= 1: return records, 0, None
     embs, method = _embed([canonical_text(r) for r in records])
     sim = embs @ embs.T
+    if not isinstance(sim, np.ndarray):  # sparse TF-IDF -> densify the n×n sim only (not n×vocab)
+        sim = sim.toarray()
     keep, removed = [], 0
     for i, r in enumerate(records):
         if any(sim[i][j] >= THRESH for j in keep):
