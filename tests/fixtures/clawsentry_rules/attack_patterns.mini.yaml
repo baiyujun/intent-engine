@@ -1,12 +1,22 @@
-- id: cmd_injection
-  name: Shell command injection
-  category: command_injection
-  patterns:
-    - "(?i)\\b(rm|curl|wget|nc)\\b"
-  keywords: [rm -rf, curl, reverse shell]
-- id: ignore_instructions
-  name: Ignore prior instructions
-  category: prompt_injection
-  patterns:
-    - "(?i)ignore (all|previous|prior) instructions"
-  keywords: [ignore previous instructions, disregard prior]
+version: "1.1"
+patterns:
+  - id: "ASI01-001"
+    category: "goal_hijack"
+    description: "Markdown injection — hidden override instructions in documents"
+    risk_level: "high"
+    detection:
+      regex_patterns:
+        - pattern: "ignore.*(?:previous|prior|above).*(?:instruction|prompt|context)"
+          weight: 10
+    triggers:
+      tool_names: ["read_file", "read", "cat"]
+  - id: "ASI04-001"
+    category: "tool_misuse"
+    description: "Shell command injection via tool output"
+    risk_level: "high"
+    detection:
+      regex_patterns:
+        - pattern: "(?i)\\b(rm|curl|wget|nc)\\b"
+          weight: 9
+    triggers:
+      tool_names: ["bash", "shell", "exec"]

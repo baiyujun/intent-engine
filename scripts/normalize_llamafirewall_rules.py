@@ -14,8 +14,14 @@ def main():
     for f in d.rglob("*.yaml"):
         if "llamafirewall" not in str(f).lower() and not d.samefile(pathlib.Path("tests/fixtures/clawsentry_rules")):
             continue
-        try: rules = yaml.safe_load(f.read_text())
+        try: data = yaml.safe_load(f.read_text())
         except Exception: continue
+        # The clawsentry fixture (reused here) is a dict with a top-level "patterns"
+        # list of rules (real ClawSentry shape); a bare list is also accepted.
+        if isinstance(data, dict) and "patterns" in data:
+            rules = data.get("patterns") or []
+        else:
+            rules = data if isinstance(data, list) else []
         found = True
         for rule in (rules or []):
             rid = rule.get("id") or rule.get("name", "lf_rule")

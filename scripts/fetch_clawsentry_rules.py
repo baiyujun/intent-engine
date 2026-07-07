@@ -5,6 +5,7 @@ URL = "https://github.com/AI45Lab/ClawSentry"
 def main():
     try:
         if LOCAL.exists():
+            pathlib.Path("raw/clawsentry_rules").mkdir(parents=True, exist_ok=True)
             shutil.copy(LOCAL, pathlib.Path("raw/clawsentry_rules/attack_patterns.yaml"))
             update_manifest("clawsentry_rules", {"source_ref": "local:/home/hjy/ClawSentry", "action": "copy"})
         else:
