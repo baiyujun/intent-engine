@@ -1,0 +1,12 @@
+- id: cmd_injection
+  name: Shell command injection
+  category: command_injection
+  patterns:
+    - "(?i)\\b(rm|curl|wget|nc)\\b"
+  keywords: [rm -rf, curl, reverse shell]
+- id: ignore_instructions
+  name: Ignore prior instructions
+  category: prompt_injection
+  patterns:
+    - "(?i)ignore (all|previous|prior) instructions"
+  keywords: [ignore previous instructions, disregard prior]
