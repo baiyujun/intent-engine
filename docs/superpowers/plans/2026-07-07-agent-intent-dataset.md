@@ -2116,7 +2116,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@owtffssent.com>"
 
 **Interfaces:**
 - Consumes: `src.fetch_utils.download_file`, shared modules
-- Produces: slice `processed/per_source/mitre_attack.jsonl`. Use 1 = taxonomy (no records). Use 2 = a **small** set of technique-description rewrites as weak-labeled samples, `confidence=low`, `license_status=needs_confirmation`, `notes="MITRE technique rewrite; weak label; needs review"`.
+- Produces: slice `processed/per_source/mitre_attack_samples.jsonl` (slice name = `SRC_KEY` = `mitre_attack_samples`, matching the `license_config.yaml` key and `source_dataset`). Use 1 = taxonomy (no records). Use 2 = a **small** set of technique-description rewrites as weak-labeled samples, `confidence=low`, `license_status=needs_confirmation`, `notes="MITRE technique rewrite; weak label; needs review"`.
 
 - [ ] **Step 1: Write fixture** `tests/fixtures/mitre_attack/enterprise.mini.json` (trimmed STIX bundle):
 ```json
@@ -2137,7 +2137,7 @@ def test_normalize_mitre_attack(monkeypatch, tmp_path):
     monkeypatch.setattr(normalize_mitre_attack, "RAW_DIR", pathlib.Path("tests/fixtures/mitre_attack"))
     monkeypatch.setattr(normalize_utils, "ROOT", tmp_path, raising=False)
     normalize_mitre_attack.main()
-    recs = normalize_utils.read_slice("mitre_attack")
+    recs = normalize_utils.read_slice("mitre_attack_samples")
     assert recs
     assert all(r["label"]["confidence"] == "low" for r in recs)
     assert all(r["license_status"] == "needs_confirmation" for r in recs)
