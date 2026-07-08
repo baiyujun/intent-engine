@@ -10,6 +10,7 @@ raw/
 processed/per_source/
 .cache/
 hf_cache/
+.superpowers/
 
 # Keep processed splits + unified + synthetic + reports under version control
 # (they are small JSONL/markdown and useful to audit)
