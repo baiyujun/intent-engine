@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Model / index artifacts (large, reproducible)
+*.faiss
+*.index
+*.npy
+models/
+.cache/
+
+# Reports figures (regenerable)
+reports/figures/*.png
+
+# OS
+.DS_Store
