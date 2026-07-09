@@ -1,50 +1,50 @@
 {
   "full": {
     "test_indist": {
-      "AUC": 0.9336840289755088,
-      "F1": 0.9248291571753986,
-      "Precision": 0.9398148148148148,
-      "Recall": 0.9103139013452914,
-      "DetectionRate": 0.7854545454545454
+      "AUC": 0.8416264229044499,
+      "F1": 0.8869179600886918,
+      "Precision": 0.8771929824561403,
+      "Recall": 0.8968609865470852,
+      "DetectionRate": 0.8290909090909091
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.782808902532617,
+      "F1": 0.7809377401998463,
       "Precision": 1.0,
-      "Recall": 0.6431273644388399,
-      "DetectionRate": 0.6431273644388399
+      "Recall": 0.6406052963430012,
+      "DetectionRate": 0.6406052963430012
     }
   },
   "ablated": {
     "test_indist": {
-      "AUC": 0.9362280096585028,
-      "F1": 0.9272727272727272,
-      "Precision": 0.9400921658986175,
-      "Recall": 0.9147982062780269,
-      "DetectionRate": 0.7890909090909091
+      "AUC": 0.8383494308382201,
+      "F1": 0.891832229580574,
+      "Precision": 0.8782608695652174,
+      "Recall": 0.905829596412556,
+      "DetectionRate": 0.8363636363636363
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.7705426356589147,
+      "F1": 0.7902364607170099,
       "Precision": 1.0,
-      "Recall": 0.626733921815889,
-      "DetectionRate": 0.626733921815889
+      "Recall": 0.6532156368221942,
+      "DetectionRate": 0.6532156368221942
     }
   },
   "delta": {
     "test_indist": {
-      "AUC": -0.002543980682993996,
-      "F1": -0.002443570097328651,
-      "Precision": -0.0002773510838027793,
-      "Recall": -0.004484304932735439,
-      "DetectionRate": -0.0036363636363636598
+      "AUC": 0.003276992066229778,
+      "F1": -0.004914269491882117,
+      "Precision": -0.0010678871090771258,
+      "Recall": -0.008968609865470767,
+      "DetectionRate": -0.0072727272727272085
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.012266266873702358,
+      "F1": -0.009298720517163628,
       "Precision": 0.0,
-      "Recall": 0.016393442622950838,
-      "DetectionRate": 0.016393442622950838
+      "Recall": -0.01261034047919296,
+      "DetectionRate": -0.01261034047919296
     }
   },
   "train_size": 5589,
@@ -68,12 +68,13 @@
     39
   ],
   "honest_limitations": [
-    "test_holdout_family has NO benign records (100% malicious); DetectionRate is the only meaningful metric; AUC/F1/Prec/Rec are degenerate",
+    "test_holdout_family has NO benign records (100% malicious); DetectionRate is the only meaningful metric; AUC/F1/Prec/Rec are degenerate. Augmented-holdout metrics (with val benign) are in reports/tier1_augmented_eval.json",
     "Most real test records are single-turn; fraud-inspired multi-turn features (cumulative_risk, monotonicity, action_burst, context_exfil_gap) are 0/degenerate for single-turn records",
-    "denied_tool_call_count and failed_tool_call_count are always 0 (data unavailable in v0)",
+    "denied_tool_call_count, failed_tool_call_count, and task_tool_mismatch_flag are always 0 \u2014 reserved columns because the v0 schema lacks the underlying signals (tool permission/status, per-turn agent-proposed action). task_tool_mismatch_flag was previously computed from structured_action.action_type, which was both a near-label-proxy (target leakage) and a future-info channel (prefix-eval confound); it is now reserved at 0",
     "novelty features depend on benign training profile coverage; unseen-but-benign files/urls in test will trigger false positive flags",
     "novelty_*_score are a faithful simplification: the paper frames them as novelty against a fitted profile; we implement the flag exactly and set score=flag (0/1) since v0 has no embedding-distance profile \u2014 recorded as a simplification, not the continuous distance",
     "The paper trains on synthetic-only data; we add synthetic to real training + 240 promptfoo LLM-generated adversarial inputs (dilution) \u2014 distribution shift may affect feature importance",
-    "Fraud group is 9 features, not the paper's stated 11: the paper prose explicitly defines 9; the 2 inferred fillers (max_cumulative_risk, action_burst_5) were dropped as not faithful"
+    "Fraud group is 9 features, not the paper's stated 11: the paper prose explicitly defines 9; the 2 inferred fillers (max_cumulative_risk, action_burst_5) were dropped as not faithful",
+    "2/275 test_indist records share canonical_text with training data (pre-existing split contamination, 0.7%); negligible AUC impact"
   ]
 }

@@ -1,0 +1,282 @@
+{
+  "tier1_test_indist": {
+    "AUC": 0.8416264229044499,
+    "F1": 0.8869179600886918,
+    "Precision": 0.8771929824561403,
+    "Recall": 0.8968609865470852,
+    "DetectionRate": 0.8290909090909091,
+    "TP": 200,
+    "FP": 28,
+    "TN": 24,
+    "FN": 23,
+    "n": 275,
+    "n_mal": 223,
+    "n_ben": 52
+  },
+  "tier1_aug_holdout": {
+    "AUC": 0.5407262526700466,
+    "F1": 0.7650602409638554,
+    "Precision": 0.9495327102803738,
+    "Recall": 0.6406052963430012,
+    "DetectionRate": 0.6353919239904988,
+    "TP": 508,
+    "FP": 27,
+    "TN": 22,
+    "FN": 285,
+    "n": 842,
+    "n_mal": 793,
+    "n_ben": 49
+  },
+  "aug_holdout_benign_source": "val.jsonl benign (49), disjoint from train",
+  "feature_importances": {
+    "prompt_length": 0.0020053107291460037,
+    "token_count": 0.0034748674370348454,
+    "suspicious_keyword_count": 0.0011895655188709497,
+    "suspicious_keyword_max_weight": 0.010902239941060543,
+    "has_system_override": 0.0,
+    "has_ignore_instruction": 0.0,
+    "has_new_instruction": 0.0,
+    "instruction_conflict_flag": 0.0,
+    "override_attempt_flag": 0.0012069942895323038,
+    "privilege_escalation_signal": 0.0005713151767849922,
+    "prompt_suspicion_score": 0.0051258634775877,
+    "retry_count": 0.0,
+    "denied_tool_call_count": 0.0,
+    "failed_tool_call_count": 0.0,
+    "has_external_content_recently": 0.0,
+    "semantic_drift_score": 0.047405045479536057,
+    "tool_diversity_score": 0.2689783275127411,
+    "tool_transition_count": 0.0,
+    "session_length": 0.0023992876522243023,
+    "tool_file_read": 0.007604772225022316,
+    "tool_network_request": 0.0,
+    "tool_exec": 0.005639858543872833,
+    "tool_summarize": 0.003837640630081296,
+    "tool_web_fetch": 0.0,
+    "task_tool_mismatch_flag": 0.0,
+    "has_external_content": 0.0,
+    "suspicious_pattern_in_context": 0.0,
+    "sensitive_resource_involved": 0.0030944431200623512,
+    "risky_action_after_external_input": 0.0,
+    "external_content_count": 0.0,
+    "context_suspicion_score": 0.014491463080048561,
+    "cumulative_risk_sum": 0.06387641280889511,
+    "risk_delta": 0.03976548835635185,
+    "monotonicity_flag": 0.00018741773965302855,
+    "action_burst_score": 0.36393263936042786,
+    "novelty_recipient_flag": 0.005397188477218151,
+    "novelty_recipient_score": 0.0,
+    "novelty_filepath_flag": 0.14891387522220612,
+    "novelty_filepath_score": 0.0,
+    "context_exfil_gap": 0.0
+  },
+  "feature_importances_ranked": [
+    {
+      "idx": 34,
+      "name": "action_burst_score",
+      "importance": 0.36393263936042786
+    },
+    {
+      "idx": 16,
+      "name": "tool_diversity_score",
+      "importance": 0.2689783275127411
+    },
+    {
+      "idx": 37,
+      "name": "novelty_filepath_flag",
+      "importance": 0.14891387522220612
+    },
+    {
+      "idx": 31,
+      "name": "cumulative_risk_sum",
+      "importance": 0.06387641280889511
+    },
+    {
+      "idx": 15,
+      "name": "semantic_drift_score",
+      "importance": 0.047405045479536057
+    },
+    {
+      "idx": 32,
+      "name": "risk_delta",
+      "importance": 0.03976548835635185
+    },
+    {
+      "idx": 30,
+      "name": "context_suspicion_score",
+      "importance": 0.014491463080048561
+    },
+    {
+      "idx": 3,
+      "name": "suspicious_keyword_max_weight",
+      "importance": 0.010902239941060543
+    },
+    {
+      "idx": 19,
+      "name": "tool_file_read",
+      "importance": 0.007604772225022316
+    },
+    {
+      "idx": 21,
+      "name": "tool_exec",
+      "importance": 0.005639858543872833
+    },
+    {
+      "idx": 35,
+      "name": "novelty_recipient_flag",
+      "importance": 0.005397188477218151
+    },
+    {
+      "idx": 10,
+      "name": "prompt_suspicion_score",
+      "importance": 0.0051258634775877
+    },
+    {
+      "idx": 22,
+      "name": "tool_summarize",
+      "importance": 0.003837640630081296
+    },
+    {
+      "idx": 1,
+      "name": "token_count",
+      "importance": 0.0034748674370348454
+    },
+    {
+      "idx": 27,
+      "name": "sensitive_resource_involved",
+      "importance": 0.0030944431200623512
+    },
+    {
+      "idx": 18,
+      "name": "session_length",
+      "importance": 0.0023992876522243023
+    },
+    {
+      "idx": 0,
+      "name": "prompt_length",
+      "importance": 0.0020053107291460037
+    },
+    {
+      "idx": 8,
+      "name": "override_attempt_flag",
+      "importance": 0.0012069942895323038
+    },
+    {
+      "idx": 2,
+      "name": "suspicious_keyword_count",
+      "importance": 0.0011895655188709497
+    },
+    {
+      "idx": 9,
+      "name": "privilege_escalation_signal",
+      "importance": 0.0005713151767849922
+    },
+    {
+      "idx": 33,
+      "name": "monotonicity_flag",
+      "importance": 0.00018741773965302855
+    },
+    {
+      "idx": 23,
+      "name": "tool_web_fetch",
+      "importance": 0.0
+    },
+    {
+      "idx": 29,
+      "name": "external_content_count",
+      "importance": 0.0
+    },
+    {
+      "idx": 36,
+      "name": "novelty_recipient_score",
+      "importance": 0.0
+    },
+    {
+      "idx": 4,
+      "name": "has_system_override",
+      "importance": 0.0
+    },
+    {
+      "idx": 5,
+      "name": "has_ignore_instruction",
+      "importance": 0.0
+    },
+    {
+      "idx": 6,
+      "name": "has_new_instruction",
+      "importance": 0.0
+    },
+    {
+      "idx": 7,
+      "name": "instruction_conflict_flag",
+      "importance": 0.0
+    },
+    {
+      "idx": 11,
+      "name": "retry_count",
+      "importance": 0.0
+    },
+    {
+      "idx": 24,
+      "name": "task_tool_mismatch_flag",
+      "importance": 0.0
+    },
+    {
+      "idx": 12,
+      "name": "denied_tool_call_count",
+      "importance": 0.0
+    },
+    {
+      "idx": 13,
+      "name": "failed_tool_call_count",
+      "importance": 0.0
+    },
+    {
+      "idx": 14,
+      "name": "has_external_content_recently",
+      "importance": 0.0
+    },
+    {
+      "idx": 28,
+      "name": "risky_action_after_external_input",
+      "importance": 0.0
+    },
+    {
+      "idx": 26,
+      "name": "suspicious_pattern_in_context",
+      "importance": 0.0
+    },
+    {
+      "idx": 17,
+      "name": "tool_transition_count",
+      "importance": 0.0
+    },
+    {
+      "idx": 25,
+      "name": "has_external_content",
+      "importance": 0.0
+    },
+    {
+      "idx": 38,
+      "name": "novelty_filepath_score",
+      "importance": 0.0
+    },
+    {
+      "idx": 20,
+      "name": "tool_network_request",
+      "importance": 0.0
+    },
+    {
+      "idx": 39,
+      "name": "context_exfil_gap",
+      "importance": 0.0
+    }
+  ],
+  "group_sums": {
+    "prompt": 0.024476157501339912,
+    "session": 0.31878265738487244,
+    "tool": 0.017082272097468376,
+    "context": 0.017585907131433487,
+    "fraud": 0.6220730543136597
+  }
+}

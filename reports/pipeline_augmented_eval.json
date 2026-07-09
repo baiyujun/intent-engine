@@ -1,0 +1,42 @@
+{
+  "tier0_backend": "faiss_minilm",
+  "test_indist": {
+    "n": 275,
+    "n_mal": 223,
+    "n_ben": 52,
+    "TP": 219,
+    "FP": 7,
+    "TN": 45,
+    "FN": 4,
+    "Precision": 0.9690265486725663,
+    "Recall": 0.9820627802690582,
+    "F1": 0.9755011135857461,
+    "DetectionRate": 0.9820627802690582,
+    "block_rate": 0.730909090909091,
+    "escalate_rate": 0.09090909090909091,
+    "tier1_invocation_rate": 0.8218181818181818,
+    "p50_ms": 132.64839699695585,
+    "p90_ms": 722.9558780018124,
+    "max_ms": 27265.564094999718
+  },
+  "aug_holdout": {
+    "n": 842,
+    "n_mal": 793,
+    "n_ben": 49,
+    "TP": 791,
+    "FP": 8,
+    "TN": 41,
+    "FN": 2,
+    "Precision": 0.9899874843554443,
+    "Recall": 0.9974779319041615,
+    "F1": 0.9937185929648241,
+    "DetectionRate": 0.9974779319041615,
+    "block_rate": 0.6104513064133017,
+    "escalate_rate": 0.33847980997624705,
+    "tier1_invocation_rate": 0.9489311163895487,
+    "p50_ms": 98.64689899768564,
+    "p90_ms": 252.82159600101295,
+    "max_ms": 981.7231699998956
+  },
+  "aug_holdout_benign_source": "val.jsonl benign (49), canonical_text-verified disjoint from train"
+}

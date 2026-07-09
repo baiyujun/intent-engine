@@ -199,7 +199,14 @@ assert sorted({i for v in FEATURE_GROUPS.values() for i in v}) == list(range(40)
 
 
 def extract_features(record: dict, benign_profile: dict | None = None) -> list[float]:
-    """Return exactly 42 float features for one record, in group order."""
+    """Return exactly 40 float features for one record, in group order.
+
+    Reads NO record-level field other than `turns`. The one feature that
+    previously read `structured_action` (task_tool_mismatch_flag) is now
+    RESERVED at 0.0 — both available proxies leak (structured_action is a
+    label-proxy / future-info channel; a text re-derivation is a synth-template
+    perfect-separator). See the inline note at the tool-feature block.
+    """
     profile = benign_profile or {"recipients": set(), "filepaths": set()}
     known_recipients = profile.get("recipients", set()) or set()
     known_filepaths = profile.get("filepaths", set()) or set()
@@ -276,17 +283,30 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
     tool_summarize = float(any(RE_SUMMARIZE.search(t) for t in texts))
     tool_web_fetch = float(any(RE_WEB_FETCH.search(t) for t in texts))
 
-    sa = record.get("structured_action", {}) or {}
-    sa_action = sa.get("action_type", "unknown")
-    per_turn_action_set = set(per_turn_actions)
-    if sa_action == "unknown":
-        task_tool_mismatch_flag = 0.0
-    else:
-        task_tool_mismatch_flag = float(sa_action not in per_turn_action_set)
-    # Heuristic: if the record says network_request but no turn is a send, that's
-    # a mismatch (model selected a tool inconsistent with the conversation).
-    if (not task_tool_mismatch_flag) and sa_action == "network_request" and "network_request" not in per_turn_action_set:
-        task_tool_mismatch_flag = 1.0
+    # task_tool_mismatch_flag — RESERVED (always 0). The paper defines this as
+    # "1 if the selected tool is inconsistent with the user's request", where the
+    # "selected tool" is the agent's CURRENTLY PROPOSED action (legitimately
+    # available at guard time). Our v0 schema has only user-instruction turns and
+    # NO separate "agent selected tool" field, so the feature cannot be computed
+    # faithfully from per-turn-available data. Both available proxies leak, so
+    # the slot is reserved at 0 (same pattern as denied_tool_call_count /
+    # failed_tool_call_count, which are reserved-0 because the schema lacks the
+    # permission/tool-result signal):
+    #   1. record-level structured_action.action_type — a near-label-proxy here
+    #      (benign -> "unknown", malicious -> exec/network_request; exec ->
+    #      P(mal)=0.995, network_request -> 1.000) -> TARGET LEAKAGE, and as the
+    #      WHOLE-RECORD final action it is the FUTURE-INFO channel that confounds
+    #      the prefix eval (a t=1 prefix would carry the final action).
+    #   2. text-derived "last-turn action not in earlier-turn actions" — avoids
+    #      structured_action but is a PERFECT 1600/1600 separator on the
+    #      templated synth (every malicious family ends in a novel action type,
+    #      every benign control does not) -> a synth-TEMPLATE ARTIFACT that
+    #      would dominate importance, the same failure mode as the earlier
+    #      summarize leak.
+    # Reserving the slot (not dropping it) keeps the 40-feature / 6-tool-group
+    # layout and all group indices stable; the column simply carries no signal.
+    # extract_features therefore reads NO record-level field other than `turns`.
+    task_tool_mismatch_flag = 0.0
 
     # ── GROUP 4: Context Features (25-30) ───────────────────────────────────
     has_external_content = float(any(a == "network_request" for a in per_turn_actions))

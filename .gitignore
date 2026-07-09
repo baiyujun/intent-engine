@@ -4,15 +4,24 @@ __pycache__/
 .venv/
 .pytest_cache/
 
-# Model / index artifacts (large, reproducible)
+# Model / index artifacts
+# Large FAISS indexes + numpy arrays are reproducible from tier0.run / tier1.train
+# and ignored. The small XGBoost model JSONs (~230KB) ARE tracked so a fresh
+# clone can run the pipeline without retraining.
 *.faiss
 *.index
 *.npy
-models/
 .cache/
 
 # Reports figures (regenerable)
 reports/figures/*.png
+
+# One-off investigation / throwaway scripts (not part of the prototype)
+investigate_*.py
+tier1_eval_augmented.py
+eval_q2_pipeline_prefix.py
+verify_claims.py
+reports/aug_holdout.jsonl
 
 # OS
 .DS_Store
