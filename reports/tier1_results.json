@@ -1,0 +1,74 @@
+{
+  "full": {
+    "test_indist": {
+      "AUC": 0.9300620903759917,
+      "F1": 0.9276018099547512,
+      "Precision": 0.9360730593607306,
+      "Recall": 0.9192825112107623,
+      "DetectionRate": 0.7963636363636364
+    },
+    "test_holdout": {
+      "AUC": NaN,
+      "F1": 0.7676767676767676,
+      "Precision": 1.0,
+      "Recall": 0.6229508196721312,
+      "DetectionRate": 0.6229508196721312
+    }
+  },
+  "ablated": {
+    "test_indist": {
+      "AUC": 0.9338996205588134,
+      "F1": 0.9297052154195011,
+      "Precision": 0.9403669724770642,
+      "Recall": 0.9192825112107623,
+      "DetectionRate": 0.7927272727272727
+    },
+    "test_holdout": {
+      "AUC": NaN,
+      "F1": 0.764797507788162,
+      "Precision": 1.0,
+      "Recall": 0.6191677175283733,
+      "DetectionRate": 0.6191677175283733
+    }
+  },
+  "delta": {
+    "test_indist": {
+      "AUC": -0.0038375301828216246,
+      "F1": -0.0021034054647499634,
+      "Precision": -0.0042939131163336475,
+      "Recall": 0.0,
+      "DetectionRate": 0.0036363636363636598
+    },
+    "test_holdout": {
+      "AUC": NaN,
+      "F1": 0.002879259888605601,
+      "Precision": 0.0,
+      "Recall": 0.003783102143757877,
+      "DetectionRate": 0.003783102143757877
+    }
+  },
+  "train_size": 5349,
+  "feature_dim": 42,
+  "n_estimators": 180,
+  "max_depth": 4,
+  "fraud_cols_dropped": [
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41
+  ],
+  "honest_limitations": [
+    "test_holdout_family has NO benign records (100% malicious); DetectionRate is the only meaningful metric; AUC/F1/Prec/Rec are degenerate",
+    "Most real test records are single-turn; fraud-inspired multi-turn features (cumulative_risk, monotonicity, action_burst, context_exfil_gap) are 0/degenerate for single-turn records",
+    "denied_tool_call_count and failed_tool_call_count are always 0 (data unavailable in v0)",
+    "novelty features depend on benign training profile coverage; unseen-but-benign files/urls in test will trigger false positive flags",
+    "The paper trains on synthetic-only data; we add synthetic to real training \u2014 distribution shift may affect feature importance"
+  ]
+}
