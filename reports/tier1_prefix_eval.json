@@ -1,0 +1,43 @@
+{
+  "test_indist": {
+    "n_records": 275,
+    "n_prefixes": 275,
+    "n_adversarial_prefixes": 223,
+    "AUC": 0.9336840289755088,
+    "F1": 0.9248291571753986,
+    "Precision": 0.9398148148148148,
+    "Recall": 0.9103139013452914,
+    "DetectionRate": 0.7854545454545454,
+    "early_detection_first_flag_at_prefix": {
+      "1": 199,
+      "never": 20
+    }
+  },
+  "test_holdout": {
+    "n_records": 793,
+    "n_prefixes": 793,
+    "n_adversarial_prefixes": 793,
+    "AUC": NaN,
+    "F1": 0.782808902532617,
+    "Precision": 1.0,
+    "Recall": 0.6431273644388399,
+    "DetectionRate": 0.6431273644388399,
+    "early_detection_first_flag_at_prefix": {
+      "never": 283,
+      "1": 510
+    }
+  },
+  "synth_xgboost_paper": {
+    "n_records": 3200,
+    "n_prefixes": 10400,
+    "n_adversarial_prefixes": 5200,
+    "AUC": 0.9930103550295858,
+    "F1": 0.9688715953307393,
+    "Precision": 0.9803149606299213,
+    "Recall": 0.9576923076923077,
+    "DetectionRate": 0.48846153846153845,
+    "early_detection_first_flag_at_prefix": {
+      "1": 1600
+    }
+  }
+}

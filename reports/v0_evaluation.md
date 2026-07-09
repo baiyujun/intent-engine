@@ -202,7 +202,7 @@ Tier 1 never invoked) **and** Tier 0 did not flag `malicious`.
 | F1 (in-distribution) | 0.81 | 0.9276 (XGB-only) / 0.9755 (pipeline) | our pipeline F1 counts `escalate` as flagged; not the same protocol |
 | Fraud-group ablation ΔF1 | **−0.13** (largest drop) | **−0.0021** (≈0) | **does not match** — fraud is inert on our single-turn test data (§5) |
 | Latency per instance | 4.6 ms | ~89 ms (Tier 0 p50, §3) / ~163 ms (pipeline p50) | **~19–35× slower**; our Tier 0 embeds every query, the paper has no embed step |
-| Prefix-level eval (~6000 eval instances) | yes | **no** | we eval at record level, not partial-history prefix level (honest gap) |
+| Prefix-level eval (~6000 eval instances) | yes | **now done** (confounded — see `tier1_prefix_eval.md`): model flags at t=1 via leaked whole-record metadata, not early detection |
 | Tier 2 LLM judge | (Vigil "Transformer scanner", not in paper's Table 4) | STUB | not implemented in v0 |
 | Tier 3 orchestrator + MOF | (InjectGuard MOF, paper §4.3) | STUB | not implemented in v0 |
 
@@ -213,8 +213,10 @@ Tier 1 never invoked) **and** Tier 0 did not flag `malicious`.
 2. **Latency** — our Tier 0 (~89 ms) and pipeline (~163 ms p50) are ~19–35× the
    paper's 4.6 ms because we add a Transformer embedding step the paper lacks.
 3. **Evaluation protocol** — the paper evaluates ~6000 *prefixes* (partial
-   histories); we evaluate at the *record* level. Numbers are not on the same
-   protocol and should not be read as head-to-head parity.
+   histories); we now also run prefix-level eval, but it is **confounded** (see
+   §8 and `reports/tier1_prefix_eval.md`): the model flags at t=1 via leaked
+   whole-record `structured_action`, so it is not the genuine early-detection
+   the paper claims. Numbers are not head-to-head parity.
 4. **Tier 2/3 are stubs** — the paper's LLM arbiter and MOF corrective feedback
    have no v0 equivalent; the pipeline's final decision is a fallback policy.
 
@@ -240,9 +242,14 @@ Tier 1 never invoked) **and** Tier 0 did not flag `malicious`.
   paper trains on synthetic-only. The fraud-feature inertness (§5) is partly a
   symptom of this: the model learns synthetic multi-turn structure that the real
   single-turn test cannot exercise.
-- **Prefix-level evaluation (the paper's ~6000 eval instances) is NOT done** —
-  we evaluate at the record level. This is a deliberate v0 scope cut, recorded
-  honestly.
+- **Prefix-level evaluation (the paper's ~6000 eval instances) is NOW done**
+  (`tier1/prefix_eval.py`, `reports/tier1_prefix_eval.md`) — and it exposed a
+  confound: the model "flags" adversarial multi-turn trajectories at prefix
+  t=1 (a benign-looking fetch/list) via the whole-record `structured_action`
+  that is attached to every prefix, not via genuine early-trajectory reasoning.
+  Only `privilege_drift` at t=3 shows honest mid-trajectory uncertainty. A fair
+  early-detection eval needs per-turn proposed-action prefixes (not whole-record
+  final action) + non-templated multi-turn test data.
 - **General-purpose embedding + keyword `classify_action` are approximate** —
   the per-turn action tagger is a small ordered regex set, not a learned tagger.
 - **Latency** — pipeline p50 (~163 ms on test_indist) and the p90/max spikes
@@ -266,8 +273,11 @@ Tier 1 never invoked) **and** Tier 0 did not flag `malicious`.
 4. **Collect / curate real multi-turn test data** so the fraud-inspired
    multi-turn trajectory features can actually be evaluated (today they are
    inert — §5).
-5. **Prefix-level evaluation** (partial histories) per the paper, alongside the
-   record-level eval.
+5. **Fix the prefix-level eval confound** (`tier1/prefix_eval.py` exists now):
+   build prefixes with the **proposed action at turn t** as the prefix's
+   `structured_action` (not the whole-record final action), and curate
+   non-templated multi-turn test data so the model cannot memorize family
+   identity. Then report per-prefix latency + early-detection lead time.
 6. **Replace the keyword `classify_action` with a learned per-turn action
    tagger** to remove the regex-order fragility.
 
@@ -287,6 +297,10 @@ cd /home/hjy/intent-engine
 /home/hjy/dataset/.venv/bin/python -m tier1.train
 #   -> tier1/models/xgboost_full.json, xgboost_ablated.json
 #   -> reports/tier1_results.json
+
+# 2b. prefix-level eval (the paper's core) — load the trained model, eval every
+#     partial-history prefix; writes reports/tier1_prefix_eval.{json,md}
+/home/hjy/dataset/.venv/bin/python -m tier1.prefix_eval
 
 # 3. run the full bare test suite (sklearn Tier 0 backend, fast)
 /home/hjy/dataset/.venv/bin/python -m pytest -q
