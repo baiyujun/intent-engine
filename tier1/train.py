@@ -16,8 +16,9 @@ import pathlib
 import json
 
 # ── self-contained import shim ───────────────────────────────────────────────
-sys.path.insert(0, str(pathlib.Path("/home/hjy/dataset/src")))
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+_REPOSITORY = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_REPOSITORY / "dataset" / "src"))
+sys.path.insert(0, str(_REPOSITORY))
 
 from schema import validate_record  # noqa: E402
 from tier1.features import (  # noqa: E402
@@ -48,8 +49,8 @@ def load_jsonl(path):
 
 
 def main():
-    DATA = pathlib.Path("/home/hjy/dataset")
-    repo = pathlib.Path(__file__).resolve().parents[1]
+    DATA = _REPOSITORY / "dataset"
+    repo = _REPOSITORY
 
     # 1. Load data
     train_real = load_jsonl(DATA / "processed/train.jsonl")

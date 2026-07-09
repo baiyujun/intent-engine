@@ -16,7 +16,8 @@ import json
 import pathlib
 import sys
 
-_DS = pathlib.Path("/home/hjy/dataset/src")
+_REPO = pathlib.Path(__file__).resolve().parents[1]
+_DS = _REPO / "dataset" / "src"
 if str(_DS) not in sys.path:
     sys.path.insert(0, str(_DS))
 
@@ -101,7 +102,7 @@ def main():
     )
     out_path = pathlib.Path(
         sys.argv[2] if len(sys.argv) > 2
-        else "/home/hjy/dataset/synthetic/promptfoo_redteam.jsonl"
+        else _REPO / "dataset" / "synthetic" / "promptfoo_redteam.jsonl"
     )
     records, errors = convert(yaml_path, out_path)
     # count summary by attack_family

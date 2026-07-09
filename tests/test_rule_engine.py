@@ -7,7 +7,7 @@ Covers the public API of tier0.rule_engine:
   - load_attack_patterns
 
 Run with:
-    cd /home/hjy/intent-engine && /home/hjy/dataset/.venv/bin/python -m pytest tests/test_rule_engine.py -v
+    cd <repo> && <venv>/bin/python -m pytest tests/test_rule_engine.py -v
 """
 
 from __future__ import annotations

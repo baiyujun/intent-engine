@@ -32,7 +32,8 @@ import pathlib
 import sys
 
 # standalone import shim
-_DS = pathlib.Path("/home/hjy/dataset/src")
+_REPO = pathlib.Path(__file__).resolve().parents[1]
+_DS = _REPO / "dataset" / "src"
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 for _p in (str(_DS), str(_ROOT)):
     if _p not in sys.path:
@@ -155,8 +156,8 @@ def evaluate_prefixes(model, records, profile, split_name=""):
 
 
 def main():
-    DATA = pathlib.Path("/home/hjy/dataset")
-    repo = pathlib.Path(__file__).resolve().parents[1]
+    DATA = _REPO / "dataset"
+    repo = _REPO
 
     # load the trained full model + build benign profile from TRAINING benign
     train = (

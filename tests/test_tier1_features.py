@@ -28,7 +28,7 @@ from tier1.features import (
 from schema import make_record
 
 # ── paths ────────────────────────────────────────────────────────────────────
-DATA = pathlib.Path("/home/hjy/dataset")
+DATA = pathlib.Path(__file__).resolve().parents[1] / "dataset"
 
 
 def _idx(name: str) -> int:

@@ -86,7 +86,7 @@ class Tier2Judge(ABC):
             The agent intent record. Expected to contain ``turns`` (list of
             ``{'raw_text': str, ...}``) and ``structured_action``
             (``{'action_type': str, ...}``); see ``tier1/features.py`` and
-            ``/home/hjy/dataset/src/schema.py``.
+            ``dataset/src/schema.py``.
         context : dict | None
             Optional lower-tier signals to bias the judge (e.g. Tier 0
             ``final_verdict`` + escalation reasons, Tier 1 XGBoost

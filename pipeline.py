@@ -29,7 +29,8 @@ import argparse
 
 # ── self-contained import shim ───────────────────────────────────────────────
 _ROOT = pathlib.Path(__file__).resolve().parent
-_DS = pathlib.Path("/home/hjy/dataset/src")
+_DATASET = _ROOT / "dataset"
+_DS = _DATASET / "src"
 for _p in (str(_ROOT), str(_DS)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -40,11 +41,11 @@ from tier1.features import extract_features, build_benign_profile, FEATURE_NAMES
 from tier2 import Tier2LLMJudge  # noqa: E402
 from tier3 import Tier3Orchestrator  # noqa: E402
 
-# ── data paths ────────────────────────────────────────────────────────────────
-TRAIN_REAL = pathlib.Path("/home/hjy/dataset/processed/train.jsonl")
-TRAIN_SYNTH = pathlib.Path("/home/hjy/dataset/synthetic/xgboost_paper_derived.jsonl")
-TEST_INDIST = pathlib.Path("/home/hjy/dataset/processed/test_indist.jsonl")
-TEST_HOLDOUT = pathlib.Path("/home/hjy/dataset/processed/test_holdout_family.jsonl")
+# ── data paths (dataset is now in-repo under dataset/) ────────────────────────
+TRAIN_REAL = _DATASET / "processed" / "train.jsonl"
+TRAIN_SYNTH = _DATASET / "synthetic" / "xgboost_paper_derived.jsonl"
+TEST_INDIST = _DATASET / "processed" / "test_indist.jsonl"
+TEST_HOLDOUT = _DATASET / "processed" / "test_holdout_family.jsonl"
 
 PIPELINE_VERDICT_KEYS = (
     "id",

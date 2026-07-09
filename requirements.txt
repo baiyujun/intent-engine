@@ -1,5 +1,5 @@
-# v0 prototype deps. Base (numpy/scikit-learn/pyyaml) already in the shared
-# dataset venv at /home/hjy/dataset/.venv. Added on top:
+# v0 prototype deps. Base (numpy/scikit-learn/pyyaml) already in the dataset
+# venv at dataset/.venv. Added on top:
 xgboost>=2.0
 faiss-cpu>=1.7
 sentence-transformers>=2.2

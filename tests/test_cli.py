@@ -10,8 +10,11 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-PY = "/home/hjy/dataset/.venv/bin/python"
-ENV = {**os.environ, "PYTHONPATH": "/home/hjy/dataset/src", "TIER0_FORCE_SKLEARN": "1"}
+DATASET_ROOT = REPO / "dataset"
+# Use the running interpreter (the dataset venv, or whatever launched pytest) so
+# the test does not depend on a specific venv path surviving a fresh clone.
+PY = sys.executable
+ENV = {**os.environ, "PYTHONPATH": str(DATASET_ROOT / "src"), "TIER0_FORCE_SKLEARN": "1"}
 
 
 def _run_cli(args: list[str], models_dir: str) -> subprocess.CompletedProcess:

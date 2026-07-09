@@ -10,7 +10,8 @@ work without any env-var gymnastics.
 import os, sys, pathlib
 
 # ── self-contained import shim ──────────────────────────────────────────────
-_DS = pathlib.Path("/home/hjy/dataset/src")
+_REPO = pathlib.Path(__file__).resolve().parents[1]
+_DS = _REPO / "dataset" / "src"
 if str(_DS) not in sys.path:
     sys.path.insert(0, str(_DS))
 
@@ -20,7 +21,7 @@ from licenses import license_status, license_spdx
 
 # ── constants ───────────────────────────────────────────────────────────────
 SRC_KEY = "xgboost_paper_derived"
-OUTPUT  = "/home/hjy/dataset/synthetic/xgboost_paper_derived.jsonl"
+OUTPUT  = str(_REPO / "dataset" / "synthetic" / "xgboost_paper_derived.jsonl")
 
 # ── illustrative resource pools ──────────────────────────────────────────────
 SENSITIVE_FILES = [

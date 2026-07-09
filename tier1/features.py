@@ -1,7 +1,7 @@
 """Tier 1 feature extraction — XGBoost features in 5 groups.
 
 Implements the feature set from arXiv:2605.01143 (Section 3.3) on top of the
-v0 Agent intent record schema (see /home/hjy/dataset/src/schema.py).
+v0 Agent intent record schema (see dataset/src/schema.py).
 
 Groups / indices:
   prompt  0-10   (11)  per-turn surface signals
@@ -46,7 +46,8 @@ import sys
 import pathlib
 
 # ── self-contained import shim (conftest covers pytest; this covers standalone) ──
-_DS = pathlib.Path("/home/hjy/dataset/src")
+_REPO = pathlib.Path(__file__).resolve().parents[1]
+_DS = _REPO / "dataset" / "src"
 if str(_DS) not in sys.path:
     sys.path.insert(0, str(_DS))
 

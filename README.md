@@ -9,15 +9,22 @@ v0 prototype of a layered intent-recognition guardrail for AI agents.
 - **Tier 3** — deep review (stub in v0).
 
 ## Layout
-- `notes/`   — reference-implementation study notes (Step 1)
-- `tier0/`   — dual-path judge
-- `synth/`   — XGBoost-paper-derived synthetic data generator (writes into the `dataset` repo)
-- `tier1/`   — feature engineering + XGBoost
-- `tier2/`,`tier3/` — stubs
-- `reports/` — evaluation reports
+- `notes/`    — reference-implementation study notes (Step 1)
+- `tier0/`    — dual-path judge
+- `synth/`    — XGBoost-paper-derived synthetic data generator (writes into `dataset/`)
+- `tier1/`    — feature engineering + XGBoost
+- `tier2/`, `tier3/` — stubs
+- `dataset/`  — the unified agent-intent dataset (merged in from its former
+  standalone repo; see `dataset/README.md`). Holds `processed/` (train/val/test
+  splits), `synthetic/`, `scripts/`, `src/` (the `schema` / `normalize_utils` /
+  `licenses` modules the guardrail imports), and `reports/`.
+- `reports/`  — evaluation reports
 
 ## Environment
-Shares the `dataset` repo venv at `/home/hjy/dataset/.venv` (adds
-`faiss-cpu`, `xgboost`, `sentence-transformers`). See `requirements.txt`.
+A Python venv with `faiss-cpu`, `xgboost`, `sentence-transformers`,
+`scikit-learn`, `pyyaml`. The repo historically shares a venv under
+`dataset/.venv`; on a fresh clone create one and `pip install -r requirements.txt`.
+Import: `conftest.py` inserts `dataset/src` + the repo root onto `sys.path`, so a
+bare `pytest` resolves the flat `from schema import …` imports.
 
 This is a defensive-security research prototype. No live attacks are performed.

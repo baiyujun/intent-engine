@@ -17,6 +17,10 @@ from pathlib import Path
 from .fusion import judge, Tier0Verdict, build_index
 from .text_preprocess import normalize_text
 
+# in-repo dataset path (merged from the former standalone dataset repo)
+_REPO = Path(__file__).resolve().parents[1]
+_DEFAULT_TRAIN = _REPO / "dataset" / "processed" / "train.jsonl"
+
 
 def _format_json(verdict: Tier0Verdict) -> dict:
     """Convert Tier0Verdict to a JSON-serialisable dict."""
@@ -81,7 +85,7 @@ def main(argv: list[str] | None = None) -> None:
         help="Rebuild the FAISS index from dataset train.jsonl before querying",
     )
     parser.add_argument(
-        "--train-path", default="/home/hjy/dataset/processed/train.jsonl",
+        "--train-path", default=str(_DEFAULT_TRAIN),
         help="Path to train.jsonl for index building (default: dataset train split)",
     )
     args = parser.parse_args(argv)
