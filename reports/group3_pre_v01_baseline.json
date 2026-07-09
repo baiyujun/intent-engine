@@ -1,0 +1,316 @@
+{
+  "group": 3,
+  "description": "pre-v0.1 baseline (old synth data, task_tool_mismatch_flag=0.0)",
+  "training": {
+    "train_real": 2149,
+    "old_xgboost_derived": 3200,
+    "old_promptfoo": 240,
+    "total": 5589,
+    "benign_in_train": 1999
+  },
+  "aug_holdout": {
+    "total": 842,
+    "malicious": 793,
+    "benign": 49
+  },
+  "metrics": {
+    "AUC": 0.5407,
+    "F1": 0.7651,
+    "Precision": 0.9495,
+    "Recall": 0.6406,
+    "DetectionRate": 0.6406,
+    "TP": 508,
+    "FP": 27,
+    "TN": 22,
+    "FN": 285
+  },
+  "feature_importances_ranked": [
+    {
+      "rank": 1,
+      "idx": 34,
+      "name": "action_burst_score",
+      "gain": 0.363933,
+      "group": "fraud"
+    },
+    {
+      "rank": 2,
+      "idx": 16,
+      "name": "tool_diversity_score",
+      "gain": 0.268978,
+      "group": "session"
+    },
+    {
+      "rank": 3,
+      "idx": 37,
+      "name": "novelty_filepath_flag",
+      "gain": 0.148914,
+      "group": "fraud"
+    },
+    {
+      "rank": 4,
+      "idx": 31,
+      "name": "cumulative_risk_sum",
+      "gain": 0.063876,
+      "group": "fraud"
+    },
+    {
+      "rank": 5,
+      "idx": 15,
+      "name": "semantic_drift_score",
+      "gain": 0.047405,
+      "group": "session"
+    },
+    {
+      "rank": 6,
+      "idx": 32,
+      "name": "risk_delta",
+      "gain": 0.039765,
+      "group": "fraud"
+    },
+    {
+      "rank": 7,
+      "idx": 30,
+      "name": "context_suspicion_score",
+      "gain": 0.014491,
+      "group": "context"
+    },
+    {
+      "rank": 8,
+      "idx": 3,
+      "name": "suspicious_keyword_max_weight",
+      "gain": 0.010902,
+      "group": "prompt"
+    },
+    {
+      "rank": 9,
+      "idx": 19,
+      "name": "tool_file_read",
+      "gain": 0.007605,
+      "group": "tool"
+    },
+    {
+      "rank": 10,
+      "idx": 21,
+      "name": "tool_exec",
+      "gain": 0.00564,
+      "group": "tool"
+    },
+    {
+      "rank": 11,
+      "idx": 35,
+      "name": "novelty_recipient_flag",
+      "gain": 0.005397,
+      "group": "fraud"
+    },
+    {
+      "rank": 12,
+      "idx": 10,
+      "name": "prompt_suspicion_score",
+      "gain": 0.005126,
+      "group": "prompt"
+    },
+    {
+      "rank": 13,
+      "idx": 22,
+      "name": "tool_summarize",
+      "gain": 0.003838,
+      "group": "tool"
+    },
+    {
+      "rank": 14,
+      "idx": 1,
+      "name": "token_count",
+      "gain": 0.003475,
+      "group": "prompt"
+    },
+    {
+      "rank": 15,
+      "idx": 27,
+      "name": "sensitive_resource_involved",
+      "gain": 0.003094,
+      "group": "context"
+    },
+    {
+      "rank": 16,
+      "idx": 18,
+      "name": "session_length",
+      "gain": 0.002399,
+      "group": "session"
+    },
+    {
+      "rank": 17,
+      "idx": 0,
+      "name": "prompt_length",
+      "gain": 0.002005,
+      "group": "prompt"
+    },
+    {
+      "rank": 18,
+      "idx": 8,
+      "name": "override_attempt_flag",
+      "gain": 0.001207,
+      "group": "prompt"
+    },
+    {
+      "rank": 19,
+      "idx": 2,
+      "name": "suspicious_keyword_count",
+      "gain": 0.00119,
+      "group": "prompt"
+    },
+    {
+      "rank": 20,
+      "idx": 9,
+      "name": "privilege_escalation_signal",
+      "gain": 0.000571,
+      "group": "prompt"
+    },
+    {
+      "rank": 21,
+      "idx": 33,
+      "name": "monotonicity_flag",
+      "gain": 0.000187,
+      "group": "fraud"
+    },
+    {
+      "rank": 22,
+      "idx": 23,
+      "name": "tool_web_fetch",
+      "gain": 0.0,
+      "group": "tool"
+    },
+    {
+      "rank": 23,
+      "idx": 29,
+      "name": "external_content_count",
+      "gain": 0.0,
+      "group": "context"
+    },
+    {
+      "rank": 24,
+      "idx": 36,
+      "name": "novelty_recipient_score",
+      "gain": 0.0,
+      "group": "fraud"
+    },
+    {
+      "rank": 25,
+      "idx": 4,
+      "name": "has_system_override",
+      "gain": 0.0,
+      "group": "prompt"
+    },
+    {
+      "rank": 26,
+      "idx": 5,
+      "name": "has_ignore_instruction",
+      "gain": 0.0,
+      "group": "prompt"
+    },
+    {
+      "rank": 27,
+      "idx": 6,
+      "name": "has_new_instruction",
+      "gain": 0.0,
+      "group": "prompt"
+    },
+    {
+      "rank": 28,
+      "idx": 7,
+      "name": "instruction_conflict_flag",
+      "gain": 0.0,
+      "group": "prompt"
+    },
+    {
+      "rank": 29,
+      "idx": 11,
+      "name": "retry_count",
+      "gain": 0.0,
+      "group": "session"
+    },
+    {
+      "rank": 30,
+      "idx": 24,
+      "name": "task_tool_mismatch_flag",
+      "gain": 0.0,
+      "group": "tool"
+    },
+    {
+      "rank": 31,
+      "idx": 12,
+      "name": "denied_tool_call_count",
+      "gain": 0.0,
+      "group": "session"
+    },
+    {
+      "rank": 32,
+      "idx": 13,
+      "name": "failed_tool_call_count",
+      "gain": 0.0,
+      "group": "session"
+    },
+    {
+      "rank": 33,
+      "idx": 14,
+      "name": "has_external_content_recently",
+      "gain": 0.0,
+      "group": "session"
+    },
+    {
+      "rank": 34,
+      "idx": 28,
+      "name": "risky_action_after_external_input",
+      "gain": 0.0,
+      "group": "context"
+    },
+    {
+      "rank": 35,
+      "idx": 26,
+      "name": "suspicious_pattern_in_context",
+      "gain": 0.0,
+      "group": "context"
+    },
+    {
+      "rank": 36,
+      "idx": 17,
+      "name": "tool_transition_count",
+      "gain": 0.0,
+      "group": "session"
+    },
+    {
+      "rank": 37,
+      "idx": 25,
+      "name": "has_external_content",
+      "gain": 0.0,
+      "group": "context"
+    },
+    {
+      "rank": 38,
+      "idx": 38,
+      "name": "novelty_filepath_score",
+      "gain": 0.0,
+      "group": "fraud"
+    },
+    {
+      "rank": 39,
+      "idx": 20,
+      "name": "tool_network_request",
+      "gain": 0.0,
+      "group": "tool"
+    },
+    {
+      "rank": 40,
+      "idx": 39,
+      "name": "context_exfil_gap",
+      "gain": 0.0,
+      "group": "fraud"
+    }
+  ],
+  "group_sums": {
+    "prompt": 0.024476,
+    "session": 0.318783,
+    "tool": 0.017082,
+    "context": 0.017586,
+    "fraud": 0.622073
+  }
+}
