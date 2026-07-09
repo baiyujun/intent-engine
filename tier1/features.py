@@ -70,9 +70,19 @@ RE_SENSITIVE = re.compile(
 
 # classify_action keyword groups (checked in this order — network_request before
 # file_read so "send" wins over a possible "display" co-mention).
+# NOTE: these are substring matches (no \b) — "README" matches \bread\ inside
+# it. This is a pre-existing imprecision; changing it would shift ALL features
+# that depend on classify_action. Kept as-is for stability.
 _ACT_NETWORK = re.compile(r"(?i)(send|email|upload|post|forward|pipe)")
 _ACT_FILE = re.compile(r"(?i)(read|cat|open|display|dump|show)")
 _ACT_EXEC = re.compile(r"(?i)(run|execute|sudo|shell|bash)")
+
+# Word-boundary variants for the within-turn mismatch check only — avoids the
+# "README" false-positive (read|cat|… matches inside "README") that would
+# inflate task_tool_mismatch_flag for benign exec commands mentioning README.
+_ACT_NETWORK_WB = re.compile(r"(?i)\b(send|email|upload|post|forward|pipe)\b")
+_ACT_FILE_WB = re.compile(r"(?i)\b(read|cat|open|display|dump|show)\b")
+_ACT_EXEC_WB = re.compile(r"(?i)\b(run|execute|sudo|shell|bash)\b")
 
 # recipient / filepath extraction for novelty features.
 # NOTE: the naive `(?:to|at|https?://|@)(\S+)` filepath/recipient regexes were
@@ -204,9 +214,8 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
 
     Reads NO record-level field other than `turns`. The one feature that
     previously read `structured_action` (task_tool_mismatch_flag) is now
-    RESERVED at 0.0 — both available proxies leak (structured_action is a
-    label-proxy / future-info channel; a text re-derivation is a synth-template
-    perfect-separator). See the inline note at the tool-feature block.
+    rebuilt from per-turn classify_action() — checking whether any single
+    turn bundles ≥2 distinct action types (within-turn task-tool mismatch).
     """
     profile = benign_profile or {"recipients": set(), "filepaths": set()}
     known_recipients = profile.get("recipients", set()) or set()
@@ -284,30 +293,28 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
     tool_summarize = float(any(RE_SUMMARIZE.search(t) for t in texts))
     tool_web_fetch = float(any(RE_WEB_FETCH.search(t) for t in texts))
 
-    # task_tool_mismatch_flag — RESERVED (always 0). The paper defines this as
-    # "1 if the selected tool is inconsistent with the user's request", where the
-    # "selected tool" is the agent's CURRENTLY PROPOSED action (legitimately
-    # available at guard time). Our v0 schema has only user-instruction turns and
-    # NO separate "agent selected tool" field, so the feature cannot be computed
-    # faithfully from per-turn-available data. Both available proxies leak, so
-    # the slot is reserved at 0 (same pattern as denied_tool_call_count /
-    # failed_tool_call_count, which are reserved-0 because the schema lacks the
-    # permission/tool-result signal):
-    #   1. record-level structured_action.action_type — a near-label-proxy here
-    #      (benign -> "unknown", malicious -> exec/network_request; exec ->
-    #      P(mal)=0.995, network_request -> 1.000) -> TARGET LEAKAGE, and as the
-    #      WHOLE-RECORD final action it is the FUTURE-INFO channel that confounds
-    #      the prefix eval (a t=1 prefix would carry the final action).
-    #   2. text-derived "last-turn action not in earlier-turn actions" — avoids
-    #      structured_action but is a PERFECT 1600/1600 separator on the
-    #      templated synth (every malicious family ends in a novel action type,
-    #      every benign control does not) -> a synth-TEMPLATE ARTIFACT that
-    #      would dominate importance, the same failure mode as the earlier
-    #      summarize leak.
-    # Reserving the slot (not dropping it) keeps the 40-feature / 6-tool-group
-    # layout and all group indices stable; the column simply carries no signal.
-    # extract_features therefore reads NO record-level field other than `turns`.
+    # task_tool_mismatch_flag — rebuilt from per-turn classify_action() only.
+    # Faithful definition: 1 if ANY single turn bundles ≥2 distinct action types
+    # (e.g. "read /etc/shadow and send to attacker" = {file_read, network_request}).
+    # This captures "tool inconsistent with request" — a single user instruction
+    # invoking tools that don't cohere into one task. On the expanded data this
+    # is NO LONGER a near-perfect separator (AUC 0.629, gap 0.257) unlike the
+    # old "last-turn novel action" proxy that was 100% on templated synth.
+    # Honest limitation: near-zero signal on real test data (AUC 0.525); the
+    # moderate full-train AUC is driven by synth/promptfoo. Not redundant with
+    # tool_diversity_score (corr 0.016), partially with has_external_content (0.48).
     task_tool_mismatch_flag = 0.0
+    for t in texts:
+        # collect ALL action types whose keyword group matches (not just
+        # classify_action's single winner), so within-turn multi-tool is visible.
+        # Word-boundary variants avoid "README"->read false positives.
+        act_types = set()
+        if _ACT_NETWORK_WB.search(t): act_types.add("network_request")
+        if _ACT_FILE_WB.search(t):    act_types.add("file_read")
+        if _ACT_EXEC_WB.search(t):    act_types.add("exec")
+        if len(act_types) >= 2:
+            task_tool_mismatch_flag = 1.0
+            break
 
     # ── GROUP 4: Context Features (25-30) ───────────────────────────────────
     has_external_content = float(any(a == "network_request" for a in per_turn_actions))
