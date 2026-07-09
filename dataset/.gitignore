@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Data artifacts (large, reproducible from scripts)
+raw/
+processed/per_source/
+.cache/
+hf_cache/
+.superpowers/
+
+# Keep processed splits + unified + synthetic + reports under version control
+# (they are small JSONL/markdown and useful to audit)
+
+# OS
+.DS_Store

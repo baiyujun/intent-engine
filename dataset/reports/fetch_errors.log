@@ -1,0 +1,4 @@
+[2026-07-07T08:20:21Z] rjudge: AttributeError: 'str' object has no attribute 'get'
+[2026-07-07T08:24:09Z] clawsentry_rules: FileNotFoundError: [Errno 2] No such file or directory: 'raw/clawsentry_rules/attack_patterns.yaml'
+[2026-07-07T08:24:09Z] clawsentry_rules: FileNotFoundError: [Errno 2] No such file or directory: 'raw/clawsentry_rules/attack_patterns.yaml'
+[2026-07-07T08:25:01Z] llamafirewall_rules: AttributeError: 'str' object has no attribute 'get'

@@ -1,0 +1,46 @@
+{
+  "holdout_families": [
+    "shell_spawn",
+    "privilege_escalation",
+    "advbench_gcg"
+  ],
+  "ratio": {
+    "train": 0.8,
+    "val": 0.1,
+    "test_indist": 0.1
+  },
+  "leakage_threshold": 0.85,
+  "sizes": {
+    "train": 2149,
+    "val": 267,
+    "test_indist": 275,
+    "test_holdout_family": 793
+  },
+  "leakage_offenders_moved": 10,
+  "distributions": {
+    "train": {
+      "benign": 393,
+      "prompt_injection": 250,
+      "tool_misuse": 840,
+      "goal_hijack": 660,
+      "reconnaissance": 6
+    },
+    "val": {
+      "benign": 49,
+      "prompt_injection": 31,
+      "tool_misuse": 105,
+      "goal_hijack": 82
+    },
+    "test_indist": {
+      "benign": 50,
+      "prompt_injection": 32,
+      "tool_misuse": 107,
+      "goal_hijack": 84,
+      "reconnaissance": 2
+    },
+    "holdout": {
+      "goal_hijack": 510,
+      "tool_misuse": 283
+    }
+  }
+}

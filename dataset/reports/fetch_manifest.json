@@ -1,0 +1,112 @@
+{
+  "agentdojo": {
+    "source_ref": "089ed468cf3ed0322acc66b0211f26d9d90dbf60",
+    "fetched_at": "2026-07-07T10:39:00Z",
+    "action": "pull",
+    "url": "https://github.com/ethz-spylab/agentdojo"
+  },
+  "injecagent": {
+    "source_ref": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07",
+    "fetched_at": "2026-07-07T10:39:02Z",
+    "action": "pull",
+    "url": "https://github.com/uiuc-kang-lab/InjecAgent",
+    "license_note": "MIT, file named LICENCE"
+  },
+  "bipia": {
+    "source_ref": "a004b69ec0dd446e0afd461d98cb5e96e120a5d0",
+    "fetched_at": "2026-07-07T10:39:03Z",
+    "action": "pull",
+    "url": "https://github.com/microsoft/BIPIA",
+    "license_note": "custom Microsoft; needs_confirmation"
+  },
+  "rjudge": {
+    "source_ref": "83ce301da3ad50dd8b397e772863f5411c3d3dc2",
+    "fetched_at": "2026-07-07T10:39:05Z",
+    "action": "pull",
+    "url": "https://github.com/Lordog/R-Judge",
+    "license_note": "no LICENSE; needs_confirmation"
+  },
+  "purplellama": {
+    "source_ref": "b71c6350a2acf2fb62c2328a734cbf440ecac386",
+    "fetched_at": "2026-07-07T10:39:06Z",
+    "action": "pull",
+    "url": "https://github.com/meta-llama/PurpleLlama",
+    "license_note": "Llama Community License; needs_confirmation"
+  },
+  "hf_deepset": {
+    "source_ref": "deepset/prompt-injections",
+    "license": "Apache-2.0",
+    "action": "hf_load"
+  },
+  "hf_jayavibhav": {
+    "source_ref": "jayavibhav/prompt-injection",
+    "license": "none",
+    "action": "hf_load"
+  },
+  "hf_imoxto": {
+    "source_ref": "imoxto/prompt_injection_cleaned_dataset-v2",
+    "license": "none",
+    "action": "hf_load"
+  },
+  "jailbreakbench_repo": {
+    "source_ref": "23dbdf6b19650521604456229bc1d9c4156c85c1",
+    "fetched_at": "2026-07-07T10:40:33Z",
+    "action": "pull",
+    "url": "https://github.com/JailbreakBench/jailbreakbench",
+    "license_note": "MIT"
+  },
+  "jailbreakbench_artifacts": {
+    "source_ref": "909e68c01d94222b8ad2e397a017e2e12e2adb73",
+    "fetched_at": "2026-07-07T10:40:34Z",
+    "action": "pull",
+    "url": "https://github.com/JailbreakBench/artifacts",
+    "license_note": "MIT"
+  },
+  "advbench": {
+    "source_ref": "098262edf85f807224e70ecd87b9d83716bf6b73",
+    "fetched_at": "2026-07-07T10:40:35Z",
+    "action": "pull",
+    "url": "https://github.com/llm-attacks/llm-attacks",
+    "license_note": "MIT (llm-attacks); avoid gated HF walledai/AdvBench"
+  },
+  "gtfobins": {
+    "source_ref": "acd524623f9c406acedd2754ebd9c2431f3675ad",
+    "fetched_at": "2026-07-07T10:40:36Z",
+    "action": "pull",
+    "url": "https://github.com/GTFOBins/GTFOBins.github.io",
+    "license_note": "GPL-3.0; command patterns only"
+  },
+  "lolbas": {
+    "source_ref": "a2784c79091cb282fefb68f0056a853cfafd7e3c",
+    "fetched_at": "2026-07-07T10:40:38Z",
+    "action": "pull",
+    "url": "https://github.com/LOLBAS-Project/LOLBAS",
+    "license_note": "GPL-3.0; command patterns only"
+  },
+  "mitre_attack": {
+    "source_ref": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json",
+    "fetched_at": "2026-07-07T10:40:41Z",
+    "action": "download",
+    "bytes": 53277393,
+    "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json",
+    "license_note": "ATT&CK ToU; taxonomy ok, samples needs_confirmation"
+  },
+  "llamafirewall_rules": {
+    "source_ref": "b71c6350a2acf2fb62c2328a734cbf440ecac386",
+    "fetched_at": "2026-07-07T10:42:55Z",
+    "action": "pull",
+    "url": "https://github.com/meta-llama/PurpleLlama",
+    "license_note": "custom; needs_confirmation"
+  },
+  "owasp": {
+    "source_ref": "live",
+    "files": [
+      "agentic",
+      "llm2025"
+    ]
+  },
+  "clawsentry_rules": {
+    "source_ref": "local:/home/hjy/ClawSentry",
+    "action": "copy"
+  }
+}

