@@ -36,6 +36,32 @@ _PLUGIN_TO_RISK = {
     "shell-injection": "privilege_escalation",
     "harmful:cybercrime": "privilege_escalation",
     "contracts": "injection",
+    # ── coding-agent plugins ──
+    "coding-agent:automation-poisoning": "injection",
+    "coding-agent:delayed-ci-exfil": "exfiltration",
+    "coding-agent:generated-vulnerability": "privilege_escalation",
+    "coding-agent:network-egress-bypass": "exfiltration",
+    "coding-agent:procfs-credential-read": "exfiltration",
+    "coding-agent:repo-prompt-injection": "injection",
+    "coding-agent:sandbox-read-escape": "exfiltration",
+    "coding-agent:sandbox-write-escape": "privilege_escalation",
+    "coding-agent:secret-env-read": "exfiltration",
+    "coding-agent:secret-file-read": "exfiltration",
+    "coding-agent:steganographic-exfil": "exfiltration",
+    "coding-agent:terminal-output-injection": "injection",
+    "coding-agent:verifier-sabotage": "injection",
+    # ── agentic / injection / escalation ──
+    "agentic:memory-poisoning": "injection",
+    "indirect-prompt-injection": "injection",
+    "data-exfil": "exfiltration",
+    "rag-document-exfiltration": "exfiltration",
+    "tool-discovery": "privilege_escalation",
+    "bola": "privilege_escalation",
+    "bfla": "privilege_escalation",
+    "hijacking": "injection",
+    "system-prompt-override": "injection",
+    "ssrf": "exfiltration",
+    "sql-injection": "injection",
 }
 
 

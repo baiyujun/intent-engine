@@ -216,8 +216,12 @@ def main():
             "exactly and set score=flag (0/1) since v0 has no embedding-distance "
             "profile — recorded as a simplification, not the continuous distance",
             "The paper trains on synthetic-only data; we add synthetic to real "
-            "training + 240 promptfoo LLM-generated adversarial inputs (dilution) "
-            "— distribution shift may affect feature importance",
+            "training + promptfoo LLM-generated adversarial inputs (dilution, "
+            "scaled to ~3864 across 30 coding-agent/agentic plugins + 4 encoding "
+            "strategies) — distribution shift may affect feature importance. "
+            "promptfoo is adversarial-only, so it pushes the train class balance "
+            "to ~2.45:1 malicious:benign; no scale_pos_weight is applied in Part 1 "
+            "(kept consistent across all comparison groups in Part 3).",
             "Fraud group is 9 features, not the paper's stated 11: the paper "
             "prose explicitly defines 9; the 2 inferred fillers "
             "(max_cumulative_risk, action_burst_5) were dropped as not faithful",
