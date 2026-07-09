@@ -6,7 +6,7 @@ max_depth=4), evaluates on test_indist and test_holdout_family, then runs a
 leave-one-out ablation of the fraud-inspired group (cols 31-41).
 
 Outputs:
-  tier1/models/xgboost_full.json    — full 42-feature model
+  tier1/models/xgboost_full.json    — full 40-feature model
   tier1/models/xgboost_ablated.json — 31-feature model (fraud group dropped)
   reports/tier1_results.json        — metrics + ablation deltas
 """
@@ -54,14 +54,19 @@ def main():
     # 1. Load data
     train_real = load_jsonl(DATA / "processed/train.jsonl")
     train_synth = load_jsonl(DATA / "synthetic/xgboost_paper_derived.jsonl")
-    train_all = train_real + train_synth
+    # Dilution source: promptfoo redteam adversarial inputs (LLM-generated,
+    # non-templated) — added to break the synthetic-template fingerprints
+    # (e.g. the benign "summarize" keyword that leaked into tool_summarize).
+    pf_path = DATA / "synthetic" / "promptfoo_redteam.jsonl"
+    train_promptfoo = load_jsonl(pf_path) if pf_path.exists() else []
+    train_all = train_real + train_synth + train_promptfoo
 
     test_indist = load_jsonl(DATA / "processed/test_indist.jsonl")
     test_holdout = load_jsonl(DATA / "processed/test_holdout_family.jsonl")
 
     print(
-        f"Train: {len(train_real)} real + {len(train_synth)} synth = "
-        f"{len(train_all)} total",
+        f"Train: {len(train_real)} real + {len(train_synth)} synth "
+        f"+ {len(train_promptfoo)} promptfoo = {len(train_all)} total",
         file=sys.stderr,
     )
     print(
@@ -84,10 +89,11 @@ def main():
     # 3. Extract features
     def featurize(records):
         X, y, errors = [], [], []
+        n_feat = len(FEATURE_NAMES)  # 40 = 11+8+6+6+9 (fraud group = 9, fillers dropped)
         for r in records:
             try:
                 fv = extract_features(r, profile)
-                assert len(fv) == 42, f"got {len(fv)} features for {r.get('id', '?')}"
+                assert len(fv) == n_feat, f"got {len(fv)} features for {r.get('id', '?')}"
                 X.append(fv)
                 y.append(int(r["label"]["is_malicious"]))
             except Exception as e:
@@ -105,7 +111,7 @@ def main():
     if err_ho:
         print(f"Feature extraction errors (test_holdout): {err_ho[:5]}", file=sys.stderr)
 
-    # 4. Train XGBoost (full 42 features)
+    # 4. Train XGBoost (full 40 features)
     clf = xgb.XGBClassifier(
         n_estimators=180,
         max_depth=4,
@@ -184,7 +190,12 @@ def main():
         "ablated": {"test_indist": metrics_id_abl, "test_holdout": metrics_ho_abl},
         "delta": {"test_indist": delta_id, "test_holdout": delta_ho},
         "train_size": len(X_train),
-        "feature_dim": 42,
+        "train_sources": {
+            "real": len(train_real),
+            "synth_xgboost_paper": len(train_synth),
+            "promptfoo_redteam": len(train_promptfoo),
+        },
+        "feature_dim": len(FEATURE_NAMES),
         "n_estimators": 180,
         "max_depth": 4,
         "fraud_cols_dropped": fraud_cols,
@@ -199,8 +210,16 @@ def main():
             "(data unavailable in v0)",
             "novelty features depend on benign training profile coverage; "
             "unseen-but-benign files/urls in test will trigger false positive flags",
+            "novelty_*_score are a faithful simplification: the paper frames "
+            "them as novelty against a fitted profile; we implement the flag "
+            "exactly and set score=flag (0/1) since v0 has no embedding-distance "
+            "profile — recorded as a simplification, not the continuous distance",
             "The paper trains on synthetic-only data; we add synthetic to real "
-            "training — distribution shift may affect feature importance",
+            "training + 240 promptfoo LLM-generated adversarial inputs (dilution) "
+            "— distribution shift may affect feature importance",
+            "Fraud group is 9 features, not the paper's stated 11: the paper "
+            "prose explicitly defines 9; the 2 inferred fillers "
+            "(max_cumulative_risk, action_burst_5) were dropped as not faithful",
         ],
     }
     report.write_text(json.dumps(results, indent=2, default=str))

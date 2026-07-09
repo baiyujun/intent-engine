@@ -76,6 +76,22 @@ SUMMARIZE_PHRASING = [
     "Make a digest of {f}",
     "Condense {f} into bullet points",
 ]
+# Benign multi-turn records previously ALWAYS ended on a summarize-keyword
+# turn (SUMMARIZE_PHRASING), which created a 100% vs 0% separation between
+# benign (1600/1600 had "summarize") and malicious (0/1600) synth records —
+# so tool_summarize became a single-feature benign-identifier shortcut
+# (importance ~0.73-0.81) instead of a real signal. To break that label
+# correlation, benign controls now mix summarize with OTHER label-neutral
+# benign endings (re-read, list, fetch-context, view-changes). None of these
+# is a send/exec, so they remain benign; they just don't all say "summarize".
+BENIGN_END_PHRASING = SUMMARIZE_PHRASING + [
+    "Read {f} again so I can compare",
+    "List the functions defined in {f}",
+    "Fetch context from {f} for the review",
+    "Show me the changes in {f}",
+    "Open {f} and check the structure",
+    "I just want to re-read {f}",
+]
 LIST_PHRASING = [
     "List files in {d}",
     "Show me what is in {d}",
@@ -182,13 +198,18 @@ def gen_split_exfil(i):
 # Family A benign — split_exfil control -----------------------------------------
 
 def gen_benign_split_exfil(i):
-    """2-turn benign control: read benign file then summarize it."""
-    bases = [len(BENIGN_FILES), len(READ_PHRASING), len(SUMMARIZE_PHRASING),
+    """2-turn benign control: read benign file then a benign ending.
+
+    The ending is drawn from BENIGN_END_PHRASING (mix of summarize + other
+    label-neutral benign verbs), NOT always summarize, to avoid the
+    benign=100%-summarize / malicious=0%-summarize leakage.
+    """
+    bases = [len(BENIGN_FILES), len(READ_PHRASING), len(BENIGN_END_PHRASING),
              len(BENIGN_PURPOSES)]
     fi, ri, si, pi = _mixed_radix(i, bases)
     f = _pick(BENIGN_FILES, fi)
     rphrase = _pick(READ_PHRASING, ri).format(f=f)
-    sphrase = _pick(SUMMARIZE_PHRASING, si).format(f=f)
+    sphrase = _pick(BENIGN_END_PHRASING, si).format(f=f)
     purpose = _pick(BENIGN_PURPOSES, pi)
     turns = [
         make_turn("user", rphrase, "user_direct", 0),
@@ -249,9 +270,12 @@ def gen_context_laundering(i):
 # Family B benign — context_laundering control ----------------------------------
 
 def gen_benign_context_laundering(i):
-    """4-turn benign control: fetch, read benign1, read benign2, summarize."""
+    """4-turn benign control: fetch, read benign1, read benign2, benign end.
+
+    Last turn drawn from BENIGN_END_PHRASING (mixed), not always summarize.
+    """
     bases = [len(BENIGN_URLS), len(BENIGN_FILES),
-             len(FETCH_PHRASING), len(READ_PHRASING), len(SUMMARIZE_PHRASING),
+             len(FETCH_PHRASING), len(READ_PHRASING), len(BENIGN_END_PHRASING),
              len(BENIGN_PURPOSES)]
     ui, bfi, fpi, rpi, spi, pi = _mixed_radix(i, bases)
     u  = _pick(BENIGN_URLS, ui)
@@ -262,7 +286,7 @@ def gen_benign_context_laundering(i):
         make_turn("user", _pick(FETCH_PHRASING, fpi).format(u=u),   "user_direct", 0),
         make_turn("user", _pick(READ_PHRASING,  rpi).format(f=bf1), "user_direct", 1),
         make_turn("user", _pick(READ_PHRASING,  rpi+1).format(f=bf2), "user_direct", 2),
-        make_turn("user", _pick(SUMMARIZE_PHRASING, spi).format(f=bf2), "user_direct", 3),
+        make_turn("user", _pick(BENIGN_END_PHRASING, spi).format(f=bf2), "user_direct", 3),
     ]
     return make_record(
         _raw_id=f"context_laundering_benign_{i}",
@@ -318,19 +342,22 @@ def gen_privilege_drift(i):
 # Family C benign — privilege_drift control -------------------------------------
 
 def gen_benign_privilege_drift(i):
-    """4-turn benign: list, read, search, summarize. NO exec or exfil verbs."""
+    """4-turn benign: list, read, search, benign end. NO exec or exfil verbs.
+
+    Last turn drawn from BENIGN_END_PHRASING (mixed), not always summarize.
+    """
     bases = [len(BENIGN_DIRS), len(BENIGN_FILES),
              len(LIST_PHRASING), len(READ_PHRASING), len(SEARCH_PHRASING),
-             len(SUMMARIZE_PHRASING), len(BENIGN_PURPOSES)]
+             len(BENIGN_END_PHRASING), len(BENIGN_PURPOSES)]
     di, bfi, lpi, rpi, spi, smpi, pi = _mixed_radix(i, bases)
     d  = _pick(BENIGN_DIRS, di)
     bf = _pick(BENIGN_FILES, bfi)
     purpose = _pick(BENIGN_PURPOSES, pi)
     turns = [
-        make_turn("user", _pick(LIST_PHRASING,     lpi).format(d=d),  "user_direct", 0),
+        make_turn("user", _pick(LIST_PHRASING,      lpi).format(d=d),  "user_direct", 0),
         make_turn("user", _pick(READ_PHRASING,     rpi).format(f=bf), "user_direct", 1),
         make_turn("user", _pick(SEARCH_PHRASING,   spi).format(f=bf), "user_direct", 2),
-        make_turn("user", _pick(SUMMARIZE_PHRASING, smpi).format(f=bf), "user_direct", 3),
+        make_turn("user", _pick(BENIGN_END_PHRASING, smpi).format(f=bf), "user_direct", 3),
     ]
     return make_record(
         _raw_id=f"privilege_drift_benign_{i}",
@@ -383,8 +410,11 @@ def gen_staged_burst(i):
 # Family D benign — staged_burst control ----------------------------------------
 
 def gen_benign_staged_burst(i):
-    """3-turn benign: read two *different* benign files then summarize second."""
-    bases = [len(BENIGN_FILES), len(READ_PHRASING), len(SUMMARIZE_PHRASING),
+    """3-turn benign: read two *different* benign files then a benign end.
+
+    Last turn drawn from BENIGN_END_PHRASING (mixed), not always summarize.
+    """
+    bases = [len(BENIGN_FILES), len(READ_PHRASING), len(BENIGN_END_PHRASING),
              len(BENIGN_PURPOSES)]
     bf1i, r1i, si, pi = _mixed_radix(i, bases)
     bf1 = _pick(BENIGN_FILES, bf1i)
@@ -393,7 +423,7 @@ def gen_benign_staged_burst(i):
     turns = [
         make_turn("user", _pick(READ_PHRASING, r1i).format(f=bf1),   "user_direct", 0),
         make_turn("user", _pick(READ_PHRASING, r1i+1).format(f=bf2), "user_direct", 1),
-        make_turn("user", _pick(SUMMARIZE_PHRASING, si).format(f=bf2), "user_direct", 2),
+        make_turn("user", _pick(BENIGN_END_PHRASING, si).format(f=bf2), "user_direct", 2),
     ]
     return make_record(
         _raw_id=f"staged_burst_benign_{i}",

@@ -1,4 +1,4 @@
-"""Tier 1 feature extraction — 42 XGBoost features in 5 groups (4 families).
+"""Tier 1 feature extraction — XGBoost features in 5 groups.
 
 Implements the feature set from arXiv:2605.01143 (Section 3.3) on top of the
 v0 Agent intent record schema (see /home/hjy/dataset/src/schema.py).
@@ -8,7 +8,19 @@ Groups / indices:
   session 11-18  (8)   turn-indexed behavioural aggregates
   tool    19-24  (6)   one-hot tool indicators + mismatch flag
   context 25-30  (6)   surrounding untrusted-environment signals
-  fraud   31-41  (11)  fraud-inspired trajectory / novelty / exfil-gap features
+  fraud   31-39  (9)   fraud-inspired trajectory / novelty / exfil-gap features
+
+Honest feature-count note:
+  The paper's fraud-inspired paragraph (Section 3.3, 4 sub-bullets) explicitly
+  defines 9 features: (i) cumulative tool-risk path + turn-to-turn delta +
+  monotonicity flag (3); (ii) action-burst score, last-3-turns (1); (iii)
+  novelty flag + score for the email recipient (2) and for the file path (2);
+  (iv) context-exfil gap (1). That is exactly 9. We previously padded to 11 by
+  adding `max_cumulative_risk` and `action_burst_5` as "inferred fillers" to
+  match the paper's stated group size of 11 — but the paper never defines
+  those two in prose, so padding them in was not faithful. They are now
+  REMOVED. The fraud group therefore has 9 features (not 11), and the total
+  feature count is 40 (not 42). We report 9, not 11 — see reports.
 
 Notes / honest caveats baked into the code:
   - denied_tool_call_count and failed_tool_call_count are always 0 because the
@@ -18,6 +30,12 @@ Notes / honest caveats baked into the code:
     records). Pass None to use empty sets -> every recipient/filepath is
     "novel" by default, so the *_flag features default to 0 when there is no
     matching turn.
+  - novelty_*_score are a faithful simplification: the paper frames them as
+    "novelty flags ... evaluated against a benign-only reference profile"
+    (analogous to "new device" flags). We implement the *flag* (set/new vs
+    seen/known) faithfully; the *_score is the same 0/1 rather than a
+    learned continuous distance, since we have no embedding-distance profile
+    in v0. This is recorded as a simplification, not hidden.
   - Several fraud-inspired features (cumulative_risk, monotonicity,
     action_burst, context_exfil_gap) are degenerate (=0 / -1) for the
     single-turn records that dominate the real datasets; they only carry
@@ -55,9 +73,23 @@ _ACT_NETWORK = re.compile(r"(?i)(send|email|upload|post|forward|pipe)")
 _ACT_FILE = re.compile(r"(?i)(read|cat|open|display|dump|show)")
 _ACT_EXEC = re.compile(r"(?i)(run|execute|sudo|shell|bash)")
 
-# recipient / filepath extraction for novelty features
-_RE_RECIPIENT = re.compile(r"(?i)(?:to|at|https?://|@)(\S+)")
-_RE_FILEPATH = re.compile(r"(?i)(?:read|cat|open|display|dump|show)\s+(\S+)")
+# recipient / filepath extraction for novelty features.
+# NOTE: the naive `(?:to|at|https?://|@)(\S+)` filepath/recipient regexes were
+# BUGGY — `_RE_FILEPATH` captured only the first token after the read verb
+# (e.g. "the" from "Read the private key file at ~/.ssh/id_rsa"), so sensitive
+# paths were never recognised as novel. `_RE_RECIPIENT` matched "at"/"to" as
+# substrings (e.g. "att**at**cker" -> "tacker@...", or "to**at**" -> "a"). Both
+# are replaced below with patterns that capture the actual path / recipient.
+_RE_RECIPIENT = re.compile(
+    r"(?i)(?:send|email|upload|post|forward|pipe).*?"
+    r"((?:https?://\S+|[\w.+-]+@[\w.-]+))"
+)
+# a path-like token: absolute (/x), home (~), relative-dot (./x, ../x), or
+# plain relative-with-slash (config/database.yml, src/main.py, secrets/x.json)
+_RE_FILEPATH = re.compile(
+    r"(?i)(?:read|cat|open|display|dump|show)\b.*?"
+    r"((?:~/|/|\.\.?/|[\w.\-]+/)[\w./\-]+)"
+)
 
 # suspicious-keyword weights for prompt_suspicion_score group-1 feature 4
 _KW_WEIGHTS = [
@@ -149,22 +181,21 @@ FEATURE_NAMES = [
     "has_external_content", "suspicious_pattern_in_context",
     "sensitive_resource_involved", "risky_action_after_external_input",
     "external_content_count", "context_suspicion_score",
-    # group 5: fraud (31-41)
+    # group 5: fraud (31-39) — 9 features, per the paper's explicit definitions
     "cumulative_risk_sum", "risk_delta", "monotonicity_flag", "action_burst_score",
     "novelty_recipient_flag", "novelty_recipient_score", "novelty_filepath_flag",
-    "novelty_filepath_score", "context_exfil_gap", "max_cumulative_risk",
-    "action_burst_5",
+    "novelty_filepath_score", "context_exfil_gap",
 ]
-assert len(FEATURE_NAMES) == 42
+assert len(FEATURE_NAMES) == 40
 
 FEATURE_GROUPS = {
     "prompt": list(range(0, 11)),
     "session": list(range(11, 19)),
     "tool": list(range(19, 25)),
     "context": list(range(25, 31)),
-    "fraud": list(range(31, 42)),
+    "fraud": list(range(31, 40)),
 }
-assert sorted({i for v in FEATURE_GROUPS.values() for i in v}) == list(range(42))
+assert sorted({i for v in FEATURE_GROUPS.values() for i in v}) == list(range(40))
 
 
 def extract_features(record: dict, benign_profile: dict | None = None) -> list[float]:
@@ -281,7 +312,7 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
         + risky_action_after_external_input * 3
     )
 
-    # ── GROUP 5: Fraud-inspired Features (31-41) ────────────────────────────
+    # ── GROUP 5: Fraud-inspired Features (31-39, 9 features) ───────────────
     risks = [tool_risk(a) for a in per_turn_actions]
     cumulative_risk_sum = float(sum(risks))
     if n >= 2:
@@ -299,26 +330,16 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
             return 0.0
         return float(sum(1 for r in tail if r >= 2) / len(tail))
 
+    # action-burst score = fraction of the last three turns invoking a
+    # high-risk tool (tool_risk >= 2), capturing the staged-burst pattern.
     action_burst_score = _burst(3)
-    action_burst_5 = _burst(5)
-
-    # running cumulative-sum peaks
-    running = 0
-    max_cum = 0
-    for r in risks:
-        running += r
-        if running > max_cum:
-            max_cum = running
-    max_cumulative_risk = float(max_cum)
 
     # novelty recipient (network_request turns)
     novelty_recipient_flag = 0.0
-    has_net_turn = False
     for t in texts:
         # only examine turns classified as network_request
         if classify_action(t) != "network_request":
             continue
-        has_net_turn = True
         for cand in _RE_RECIPIENT.findall(t):
             if cand not in known_recipients:
                 novelty_recipient_flag = 1.0
@@ -329,11 +350,9 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
 
     # novelty filepath (file_read turns)
     novelty_filepath_flag = 0.0
-    has_file_turn = False
     for t in texts:
         if classify_action(t) != "file_read":
             continue
-        has_file_turn = True
         for cand in _RE_FILEPATH.findall(t):
             if cand not in known_filepaths:
                 novelty_filepath_flag = 1.0
@@ -372,9 +391,8 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
         has_external_content, suspicious_pattern_in_context,
         sensitive_resource_involved, risky_action_after_external_input,
         external_content_count, context_suspicion_score,
-        # fraud 31-41
+        # fraud 31-39 (9 features — no max_cumulative_risk / action_burst_5 fillers)
         cumulative_risk_sum, risk_delta, monotonicity_flag, action_burst_score,
         novelty_recipient_flag, novelty_recipient_score, novelty_filepath_flag,
-        novelty_filepath_score, context_exfil_gap, max_cumulative_risk,
-        action_burst_5,
+        novelty_filepath_score, context_exfil_gap,
     ]

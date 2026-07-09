@@ -1,54 +1,59 @@
 {
   "full": {
     "test_indist": {
-      "AUC": 0.9300620903759917,
-      "F1": 0.9276018099547512,
-      "Precision": 0.9360730593607306,
-      "Recall": 0.9192825112107623,
-      "DetectionRate": 0.7963636363636364
+      "AUC": 0.9336840289755088,
+      "F1": 0.9248291571753986,
+      "Precision": 0.9398148148148148,
+      "Recall": 0.9103139013452914,
+      "DetectionRate": 0.7854545454545454
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.7676767676767676,
+      "F1": 0.782808902532617,
       "Precision": 1.0,
-      "Recall": 0.6229508196721312,
-      "DetectionRate": 0.6229508196721312
+      "Recall": 0.6431273644388399,
+      "DetectionRate": 0.6431273644388399
     }
   },
   "ablated": {
     "test_indist": {
-      "AUC": 0.9338996205588134,
-      "F1": 0.9297052154195011,
-      "Precision": 0.9403669724770642,
-      "Recall": 0.9192825112107623,
-      "DetectionRate": 0.7927272727272727
+      "AUC": 0.9362280096585028,
+      "F1": 0.9272727272727272,
+      "Precision": 0.9400921658986175,
+      "Recall": 0.9147982062780269,
+      "DetectionRate": 0.7890909090909091
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.764797507788162,
+      "F1": 0.7705426356589147,
       "Precision": 1.0,
-      "Recall": 0.6191677175283733,
-      "DetectionRate": 0.6191677175283733
+      "Recall": 0.626733921815889,
+      "DetectionRate": 0.626733921815889
     }
   },
   "delta": {
     "test_indist": {
-      "AUC": -0.0038375301828216246,
-      "F1": -0.0021034054647499634,
-      "Precision": -0.0042939131163336475,
-      "Recall": 0.0,
-      "DetectionRate": 0.0036363636363636598
+      "AUC": -0.002543980682993996,
+      "F1": -0.002443570097328651,
+      "Precision": -0.0002773510838027793,
+      "Recall": -0.004484304932735439,
+      "DetectionRate": -0.0036363636363636598
     },
     "test_holdout": {
       "AUC": NaN,
-      "F1": 0.002879259888605601,
+      "F1": 0.012266266873702358,
       "Precision": 0.0,
-      "Recall": 0.003783102143757877,
-      "DetectionRate": 0.003783102143757877
+      "Recall": 0.016393442622950838,
+      "DetectionRate": 0.016393442622950838
     }
   },
-  "train_size": 5349,
-  "feature_dim": 42,
+  "train_size": 5589,
+  "train_sources": {
+    "real": 2149,
+    "synth_xgboost_paper": 3200,
+    "promptfoo_redteam": 240
+  },
+  "feature_dim": 40,
   "n_estimators": 180,
   "max_depth": 4,
   "fraud_cols_dropped": [
@@ -60,15 +65,15 @@
     36,
     37,
     38,
-    39,
-    40,
-    41
+    39
   ],
   "honest_limitations": [
     "test_holdout_family has NO benign records (100% malicious); DetectionRate is the only meaningful metric; AUC/F1/Prec/Rec are degenerate",
     "Most real test records are single-turn; fraud-inspired multi-turn features (cumulative_risk, monotonicity, action_burst, context_exfil_gap) are 0/degenerate for single-turn records",
     "denied_tool_call_count and failed_tool_call_count are always 0 (data unavailable in v0)",
     "novelty features depend on benign training profile coverage; unseen-but-benign files/urls in test will trigger false positive flags",
-    "The paper trains on synthetic-only data; we add synthetic to real training \u2014 distribution shift may affect feature importance"
+    "novelty_*_score are a faithful simplification: the paper frames them as novelty against a fitted profile; we implement the flag exactly and set score=flag (0/1) since v0 has no embedding-distance profile \u2014 recorded as a simplification, not the continuous distance",
+    "The paper trains on synthetic-only data; we add synthetic to real training + 240 promptfoo LLM-generated adversarial inputs (dilution) \u2014 distribution shift may affect feature importance",
+    "Fraud group is 9 features, not the paper's stated 11: the paper prose explicitly defines 9; the 2 inferred fillers (max_cumulative_risk, action_burst_5) were dropped as not faithful"
   ]
 }

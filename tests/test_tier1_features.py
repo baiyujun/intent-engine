@@ -106,17 +106,25 @@ class TestFeatureCount:
         r = _make_single_turn_record("Hello world")
         fv = extract_features(r)
         assert isinstance(fv, list)
-        assert len(fv) == 42
+        # 40 = 11 prompt + 8 session + 6 tool + 6 context + 9 fraud.
+        # The fraud group is 9 (not 11): the paper's prose explicitly defines 9
+        # fraud-inspired features; the 2 "inferred fillers"
+        # (max_cumulative_risk, action_burst_5) were dropped as not-faithful.
+        assert len(fv) == 40
         assert all(isinstance(v, float) for v in fv)
 
     def test_feature_names_count(self):
-        assert len(FEATURE_NAMES) == 42
+        assert len(FEATURE_NAMES) == 40
 
     def test_feature_groups_cover_all(self):
         all_indices = set()
         for indices in FEATURE_GROUPS.values():
             all_indices.update(indices)
-        assert all_indices == set(range(42))
+        assert all_indices == set(range(40))
+        # fraud group is exactly the 9 paper-defined features, indices 31-39
+        assert FEATURE_GROUPS["fraud"] == list(range(31, 40))
+        assert "max_cumulative_risk" not in FEATURE_NAMES
+        assert "action_burst_5" not in FEATURE_NAMES
 
 
 class TestPromptFeatures:
@@ -265,7 +273,7 @@ class TestRealRecord:
         recs = _load_first(DATA / "processed/test_indist.jsonl", 1)
         assert len(recs) == 1
         fv = extract_features(recs[0])
-        assert len(fv) == 42
+        assert len(fv) == 40  # 11+8+6+6+9 (fraud group = 9, fillers dropped)
         assert not any(math.isnan(x) for x in fv)
         assert not any(math.isinf(x) for x in fv)
 

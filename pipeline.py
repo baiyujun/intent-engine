@@ -1,6 +1,6 @@
 """End-to-end intent-recognition guardrail pipeline (Step 6, FINAL).
 
-Wires Tier 0 (dual-path deterministic judge) -> Tier 1 (XGBoost on 42
+Wires Tier 0 (dual-path deterministic judge) -> Tier 1 (XGBoost on 40
 features) -> Tier 2 (LLM judge, v0 STUB) -> Tier 3 (orchestrator, v0 STUB)
 into a single callable :class:`Pipeline`.
 
