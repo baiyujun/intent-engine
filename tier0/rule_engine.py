@@ -100,6 +100,21 @@ _THRESHOLD_CRITICAL = 2.2
 _THRESHOLD_HIGH = 1.5
 _THRESHOLD_MEDIUM = 0.8
 
+# Numeric ordering of risk levels (for max-comparison when fusing D-based and
+# pattern-based risk). Lower = safer.
+_RISK_ORDER = {RiskLevel.LOW: 0, RiskLevel.MEDIUM: 1, RiskLevel.HIGH: 2, RiskLevel.CRITICAL: 3}
+
+# Minimum pattern weight for a pattern match to elevate the rule risk level.
+# Weighted regexes in attack_patterns.yaml range 4-10; only confident hits (>=8)
+# drive risk up, to avoid low-weight noise flipping benign verdicts.
+_PATTERN_WEIGHT_THRESHOLD = 8
+
+
+def _max_risk(a: RiskLevel, b: RiskLevel) -> RiskLevel:
+    """Return the higher of two risk levels."""
+    return a if _RISK_ORDER[a] >= _RISK_ORDER[b] else b
+
+
 
 # ---------------------------------------------------------------------------
 # D1: Tool type danger (0-3) — tool risk sets
@@ -685,6 +700,8 @@ class PatternMatcher:
         tool_name: str,
         payload: dict[str, Any],
         content: str,
+        *,
+        text_only: bool = False,
     ) -> list[AttackPattern]:
         """Return all patterns that match the given event.
 
@@ -698,18 +715,30 @@ class PatternMatcher:
             The primary text to match detection regexes against (e.g. file
             contents or command string).  Falls back to ``payload["command"]``
             when empty.
+        text_only : bool
+            When True (Tier 0 raw-text judging, no tool-call context), skip the
+            trigger gate entirely and run detection regexes directly on the
+            content. The attack_patterns.yaml triggers gate on ``tool_names``/
+            ``file_extensions`` that describe an *agent tool event*; for a bare
+            prompt there is no such context, and the detection regexes (e.g.
+            ``ignore.*previous.*instruction``) are specific enough to stand
+            alone. False-positive path filters still apply (and match nothing,
+            since ``payload`` has no path) — this does NOT bypass access limits
+            or weaken suppression; it only removes a context gate that does not
+            exist for raw text.
         """
         results: list[AttackPattern] = []
         # Normalize content for security analysis before regex matching so
         # invisible-Unicode / fullwidth evasion does not bypass detection.
         normalized_content = normalize_text(content) if content else ""
         for pattern in self.patterns:
-            if self._triggers_match(pattern, tool_name, payload):
-                matched, weight = self._detection_match(pattern, normalized_content, payload)
-                if matched and not self._is_false_positive(pattern, payload):
-                    hit = copy.copy(pattern)
-                    hit.max_weight = weight
-                    results.append(hit)
+            if not text_only and not self._triggers_match(pattern, tool_name, payload):
+                continue
+            matched, weight = self._detection_match(pattern, normalized_content, payload)
+            if matched and not self._is_false_positive(pattern, payload):
+                hit = copy.copy(pattern)
+                hit.max_weight = weight
+                results.append(hit)
         return results
 
     # -- trigger evaluation -------------------------------------------------
@@ -872,6 +901,8 @@ def evaluate_rules(
     payload: dict,
     content: str,
     matcher: Optional[PatternMatcher] = None,
+    *,
+    text_only: bool = False,
 ) -> RuleVerdict:
     """Evaluate D1-D3 + short-circuits + pattern match → RuleVerdict.
 
@@ -884,6 +915,17 @@ def evaluate_rules(
          - SC-2: d3==3 → critical
          - SC-3: d1==0 and d2==0 and d3==0 → low
       4. Otherwise: risk_level from the composite-score thresholds.
+      5. Pattern matches then ELEVATE the risk level: any matched pattern whose
+         ``max_weight >= _PATTERN_WEIGHT_THRESHOLD`` raises the verdict to at
+         least the pattern's own ``risk_level`` (via _max_risk). This lets a
+         "ignore previous instructions" content hit (ASI01-001, high, w=10)
+         flip an otherwise-medium D-based verdict to high — the rule path must
+         respond to content, not only to tool/command danger.
+
+    ``text_only=True`` is for judging raw prompt text with no tool-call
+    context (the Tier 0 ``judge()`` text path). In that mode an unknown/absent
+    tool scores D1=0 (no tool ⇒ no tool danger) rather than the conservative
+    fallback 2, which would otherwise inflate every text input to medium.
     """
     tool = (tool_name or "").lower()
     payload = payload if isinstance(payload, dict) else {}
@@ -893,10 +935,18 @@ def evaluate_rules(
     # 1. Pattern match
     if matcher is None:
         matcher = PatternMatcher()
-    matched = matcher.match(tool, payload, content_text or cmd)
+    matched = matcher.match(tool, payload, content_text or cmd, text_only=text_only)
 
     # 2. D1-D3 scoring
     d1 = score_d1(tool, cmd)
+    # text_only: an unknown/absent tool carries no tool danger (D1=0), not the
+    # conservative 2. Known tools keep their real score (e.g. bash still 2/3).
+    if text_only and tool not in (
+        READONLY_TOOLS | LIMITED_WRITE_TOOLS | SYSTEM_INTERACTION_TOOLS
+        | HIGH_DANGER_TOOLS | DANGEROUS_TOOLS
+        | {"bash", "shell", "terminal", "command"}
+    ):
+        d1 = 0
     d2 = score_d2(tool, payload)
     d3 = score_d3(tool, cmd)
 
@@ -913,6 +963,11 @@ def evaluate_rules(
         # 4. No short-circuit: composite score → risk level
         score = _composite_score(d1, d2, d3)
         risk_level = _score_to_risk_level(score)
+
+    # 5. Pattern matches elevate the risk level (content-driven signal).
+    for pat in matched:
+        if pat.max_weight >= _PATTERN_WEIGHT_THRESHOLD:
+            risk_level = _max_risk(risk_level, pat.risk_level)
 
     return RuleVerdict(
         risk_level=risk_level,
