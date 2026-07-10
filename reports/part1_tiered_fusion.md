@@ -70,7 +70,19 @@ tier0_score = `-vector_margin` (d_ben − d_mal); tier1_score = prob. Both genui
 
 **The hypothesis is confirmed on preliminary data**: gating Tier1's hard-block by Tier0's own verdict cuts multi-turn benign hard-FP from 40% → 2.5% (≈ Tier0-alone's 7.5%, actually lower) **with no loss of review-recall**. This is the round's primary deliverable.
 
+### Caveat (specific, per v0.3 audit — NOT just "non-production-representative")
+
+This caveat must travel with the "40%→2.5%" number wherever it is cited.
+
+**修复方向可信，具体数值不可信。** 需要分两层看：
+
+1. **gating 逻辑本身（Tier0 判良性时不让 Tier1 直接硬拦截）这个修复方向成立**——这是架构/逻辑层面的改动，不依赖具体数据的词面分布。无论用什么良性数据，"Tier0 已判 benign 时 Tier1 高分只能 defer 不能 block"这个 gating 都是合理的：它让最可能误拦良性的一类情况（Tier0 benign + Tier1 高分）从自动拦截降级为复核，逻辑上必然降低良性硬拦，且不丢 review-recall。这部分结论是数据无关的、可信的。
+
+2. **但"40%→2.5%"这个具体绝对数值很可能被这批数据的词面指纹抬高**。这次验证用的 40 条良性是 v0.2 手写 archetype 数据，捷径体检发现它们带 `audit/security/compliance` 等近完美区分词（gap 1.15，mal 0% ben 92%）。这些词面指纹让 Tier0 更容易把 40 条判成 benign、Tier1 也更容易区分——**2.5% 这个绝对值偏乐观，不是真实数据上的量化效果**。在真实生产数据（无这些词面指纹）上，hard-FP 的实际降幅可能更小。
+
+**所以：** 报告 "gating 逻辑修复方向成立"（可信）+ 报告 "2.5% 是手写数据上的乐观估计，真实降幅待合规数据验证"（数值不可单独当结论）。这和 Part 4 多轮良性指标共享同一个"handcrafted_untrusted 数据"局限——但 Part 4 已按审计决定放弃多轮良性侧，故 Part 1 的数值局限在此记录、不进 Part 4 结论。
+
 Caveats (honest):
-- Multi-turn benign is the Part-0-untrustworthy hand-written set — this is preliminary. Part 3 will rebuild benign with AgentDojo; Part 4 will re-verify.
+- Multi-turn benign is the Part-0-untrustworthy hand-written set — preliminary, and per the v0.3 shortcut-checkup carries `audit/security` lexical fingerprints (gap 1.15). The 2.5% number is optimistic; the gating *direction* is sound but the *magnitude* is not validated on real data.
 - The fix trades 21 auto-blocks for 21 reviews (15 benign + 6 malicious). Operationally that's a human-review load of 21/91 ≈ 23% — acceptable vs a 40% auto-block of benign, but a real cost.
 - p_bh sweep (0.5–0.9) barely changes hard-FP (2.5% throughout) — the gate is doing the work, not the threshold; robust.
