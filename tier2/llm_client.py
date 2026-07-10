@@ -86,8 +86,14 @@ def _extract_json(text: str) -> dict | None:
 
 
 def chat(messages: list[dict], *, temperature: float = 0.0,
-         max_tokens: int = 16384) -> tuple[str, float, dict]:
+         max_tokens: int = 16384, with_reasoning: bool = False) -> tuple[str, float, dict]:
     """Call the LLM. Returns (content, latency_ms, meta).
+
+    ``with_reasoning=True`` additionally surfaces the model's raw chain-of-thought
+    under ``meta['reasoning_content']``. The kspmas gateway returns deepseek-v4-pro's
+    CoT there (verified: message keys = ['content','reasoning_content','role']).
+    Default False so existing callers/tests see the same meta shape they always
+    have — this is an eval-only opt-in, not a behavior change for the judge.
 
     max_tokens default is 16384: deepseek-v4-pro is a reasoning model that consumes
     a large reasoning token budget before emitting JSON in `content`; smaller
@@ -126,6 +132,7 @@ def chat(messages: list[dict], *, temperature: float = 0.0,
     finally:
         client.close()
     content = data["choices"][0]["message"].get("content", "") or ""
+    reasoning_content = data["choices"][0]["message"].get("reasoning_content", "") or ""
     latency = (time.perf_counter() - t0) * 1000.0
     meta = {
         "model": cfg["model"],
@@ -134,4 +141,6 @@ def chat(messages: list[dict], *, temperature: float = 0.0,
         "content_len": len(content),
         "parse_ok": _extract_json(content) is not None,
     }
+    if with_reasoning:
+        meta["reasoning_content"] = reasoning_content
     return content, latency, meta
