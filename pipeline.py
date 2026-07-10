@@ -46,6 +46,7 @@ from schema import canonical_text  # noqa: E402
 from tier0.fusion import judge as tier0_judge  # noqa: E402
 from tier1.features import extract_features, build_benign_profile, FEATURE_NAMES  # noqa: E402
 from tier2 import Tier2LLMJudge  # noqa: E402
+from tier2.base import Tier2Verdict  # noqa: E402
 from tier3 import Tier3Orchestrator  # noqa: E402
 
 # ── data paths (dataset is now in-repo under dataset/) ────────────────────────
@@ -95,10 +96,16 @@ class Pipeline:
     comes from :meth:`_decide`, a documented fallback over Tier 0 + Tier 1.
     """
 
-    def __init__(self, models_dir="tier0/models", tier1_model="tier1/models/xgboost_full.json"):
+    def __init__(self, models_dir="tier0/models", tier1_model="tier1/models/xgboost_full.json",
+                 tier2_enabled: bool = False):
         import xgboost as xgb
 
         self.models_dir = models_dir
+        # Tier 2 is a REAL LLM judge in v0.4, but OFF by default (no network call /
+        # latency in tests or the Tier0+Tier1 baseline). Set tier2_enabled=True to
+        # actually call the LLM (Part 6 eval). When off, .run reports
+        # tier2_status="not_implemented" exactly as the v0 stub did.
+        self.tier2_enabled = tier2_enabled
 
         # ── Tier 1 model ──────────────────────────────────────────────────
         tier1_path = pathlib.Path(tier1_model)
@@ -113,7 +120,7 @@ class Pipeline:
         # ── benign profile (built ONCE from training benign records) ──────
         self.profile = self._build_profile()
 
-        # ── Tier 2 / Tier 3 stubs ─────────────────────────────────────────
+        # ── Tier 2 / Tier 3 ───────────────────────────────────────────────
         self.tier2 = Tier2LLMJudge()
         self.tier3 = Tier3Orchestrator()
 
@@ -183,12 +190,19 @@ class Pipeline:
             prob = float(self.clf.predict_proba([fv])[0, 1])
             t1_ms = (time.perf_counter() - t1_start) * 1000.0
 
-        # ── Tier 2 / Tier 3 stubs (documented; status='not_implemented') ──
-        t2 = self.tier2.judge(record)
+        # ── Tier 2 (real LLM in v0.4, but gated OFF by default) ────────────
+        if self.tier2_enabled:
+            t2 = self.tier2.judge(record, tier1_prob=prob,
+                                  tier1_features=fv if tier1_invoked else None)
+        else:
+            # no network call in the default/baseline path — behaves as the v0 stub
+            t2 = Tier2Verdict(status="not_implemented", score=0.0, confidence=0.0,
+                             reasoning="tier2 disabled (default; no LLM call)",
+                             model=self.tier2.model, latency_ms=0.0)
         t3 = self.tier3.orchestrate(t0, prob if tier1_invoked else None, t2)
 
         final = self._decide(t0, tier1_invoked, prob)
-        # tier2/3 are stubs (not_implemented), so the highest REAL tier is 0 or 1
+        # tier2 default-off / tier3 stub => highest REAL tier is 0 or 1
         tier_used = "tier1" if tier1_invoked else "tier0"
 
         # total_ms: t0.total already covers t0 wall-clock; add t1 if invoked.
