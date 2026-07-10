@@ -26,3 +26,4 @@ reports/aug_holdout.jsonl
 # OS
 .DS_Store
 dataset/processed/*.v03pre_bak
+redteam.yaml
