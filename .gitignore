@@ -27,3 +27,7 @@ reports/aug_holdout.jsonl
 .DS_Store
 dataset/processed/*.v03pre_bak
 redteam.yaml
+
+# Tier2 LLM secrets
+.env
+.env.*
