@@ -162,8 +162,14 @@ class TestDecidePolicy:
     def test_decide_suspicious_escalates(self):
         assert self._pipe()._decide(self._t0("suspicious"), False, None) == "escalate"
 
-    def test_decide_low_escalated_high_prob_blocks(self):
-        assert self._pipe()._decide(self._t0("benign", escalated=True), True, 0.6) == "block"
+    def test_decide_suspicious_high_prob_blocks(self):
+        # v0.3: Tier0 suspicious + Tier1 high prob -> block
+        assert self._pipe()._decide(self._t0("suspicious"), True, 0.6) == "block"
+
+    def test_decide_benign_escalated_high_prob_defers(self):
+        # v0.3 RED-LINE FIX: Tier0 benign + escalated + Tier1 high prob -> defer
+        # (review), NOT block. v0.2 hard-blocked here -> 40% benign FP on multi-turn.
+        assert self._pipe()._decide(self._t0("benign", escalated=True), True, 0.6) == "defer"
 
     def test_decide_low_escalated_borderline_escalates(self):
         assert self._pipe()._decide(self._t0("benign", escalated=True), True, 0.45) == "escalate"
@@ -197,8 +203,9 @@ class TestEvaluate:
         # every benign record is either tn or fp
         assert m["tn"] + m["fp"] == 2
         for k in ("precision", "recall", "f1", "accuracy", "detection_rate",
-                  "block_rate", "escalate_rate", "tier1_invocation_rate",
-                  "p50_ms", "p90_ms", "max_ms"):
+                  "block_rate", "escalate_rate", "defer_rate",
+                  "hardblock_recall", "hardblock_benign_fp",
+                  "tier1_invocation_rate", "p50_ms", "p90_ms", "max_ms"):
             assert k in m
         assert m["p50_ms"] >= 0
         assert m["p90_ms"] >= m["p50_ms"]

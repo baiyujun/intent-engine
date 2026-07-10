@@ -6,12 +6,19 @@ into a single callable :class:`Pipeline`.
 
 Because Tier 2 and Tier 3 are documented ``not_implemented`` stubs in v0,
 the final decision is produced by :meth:`Pipeline._decide` — a documented
-fallback policy that stands in for the stubbed Tier 3 orchestrator and
-matches :data:`tier3.orchestrator.INTENDED_POLICY`:
+fallback policy that stands in for the stubbed Tier 3 orchestrator. v0.3
+introduced **tiered confidence gating** (see reports/part1_tiered_fusion.md):
 
-    * any tier-0 ``malicious`` verdict, or Tier 1 prob >= 0.5  -> ``block``
-    * tier-0 ``suspicious``, or Tier 1 prob in [0.4, 0.5)         -> ``escalate``
-    * otherwise                                                  -> ``allow``
+    * tier0 malicious                                    -> ``block``
+    * tier0 suspicious AND tier1 prob >= 0.5            -> ``block``
+    * tier0 suspicious (else)                            -> ``escalate``
+    * tier0 benign AND tier1 prob >= 0.5                 -> ``defer`` (review)
+    * tier0 benign AND tier1 prob in [0.4, 0.5)          -> ``escalate``
+    * otherwise                                          -> ``allow``
+
+The v0.2 union rule (tier0 malicious OR tier1 prob>=0.5 -> block) caused a
+40% benign hard-block false-positive on multi-turn because Tier0-benign cases
+were hard-blocked by Tier1 alone; the gate fixes it (benign-FP 40% -> 2.5%).
 
 CLI:
     python -m pipeline --input "<text>"                 # single text
@@ -122,18 +129,40 @@ class Pipeline:
 
     # ── fallback decision policy (stands in for the stubbed Tier 3) ──────────
     def _decide(self, t0, tier1_invoked: bool, prob: float | None) -> str:
-        """Fallback policy matching INTENDED_POLICY (Tier 3 is a stub).
+        """Tiered fusion fallback (v0.3). Matches INTENDED_POLICY (Tier 3 stub).
 
-        - tier0 malicious OR (tier1 invoked and prob >= 0.5) -> 'block'
-        - tier0 suspicious OR (tier1 invoked and 0.4 <= prob < 0.5) -> 'escalate'
-        - otherwise -> 'allow'
+        v0.2 BUG (the multi-turn benign red line): the old union rule did
+        ``tier0 malicious OR (tier1 prob >= 0.5) -> block``. When Tier0
+        returned ``benign`` but ``escalated=True`` (fuzzy zone), Tier1 was
+        invoked and its prob>=0.5 -> hard block, IGNORING Tier0's benign lean.
+        On multi-turn benign this caused 40% hard-block FP (Tier0 alone 7.5%).
+
+        v0.3 FIX — gate Tier1's hard-block by Tier0's OWN verdict:
+          * tier0 malicious                                  -> block
+          * tier0 suspicious AND tier1 prob >= P_SUSP_BLOCK  -> block
+          * tier0 suspicious (else)                          -> escalate
+          * tier0 benign AND tier1 prob >= P_BENIGN_HARD    -> defer (review)
+          * tier0 benign AND tier1 prob >= P_BENIGN_SOFT    -> escalate
+          * tier0 benign (else)                             -> allow
+        When Tier0 leans benign, Tier1's high prob can only DEFER (human
+        review), never auto-block. See reports/part1_tiered_fusion.md.
         """
-        if t0.final_verdict == "malicious" or (tier1_invoked and prob is not None and prob >= 0.5):
+        P_SUSP_BLOCK = 0.5
+        P_BENIGN_HARD = 0.5
+        P_BENIGN_SOFT = 0.4
+        v = t0.final_verdict
+        if v == "malicious":
             return "block"
-        if t0.final_verdict == "suspicious" or (
-            tier1_invoked and prob is not None and 0.4 <= prob < 0.5
-        ):
+        if v == "suspicious":
+            if tier1_invoked and prob is not None and prob >= P_SUSP_BLOCK:
+                return "block"
             return "escalate"
+        # v == "benign": Tier1's high prob may only DEFER, not block
+        if tier1_invoked and prob is not None:
+            if prob >= P_BENIGN_HARD:
+                return "defer"
+            if prob >= P_BENIGN_SOFT:
+                return "escalate"
         return "allow"
 
     def run(self, record: dict) -> dict:
@@ -185,11 +214,12 @@ class Pipeline:
     def evaluate(self, jsonl_path: str) -> dict:
         """Run over a test set and compute detection + latency metrics.
 
-        decision_to_pred: block -> 1, escalate -> 1 (an escalate is NOT an
-        'allow', so it counts as flagged/malicious for detection metrics),
-        allow -> 0. This is a documented choice: 'escalate' means the
-        pipeline could not clear the interaction, so for detection-rate /
-        precision / recall we treat it as flagged.
+        decision_to_pred (review-recall view): block/escalate/defer -> 1
+        (all three are "not cleared" — a defer goes to human review, so it
+        still catches a malicious case). allow -> 0.
+
+        Separately reports hard_block (block only) for the v0.3 red-line metric:
+        the benign hard-block false-positive (defer is NOT an auto-block).
         """
         records = load_jsonl(jsonl_path)
 
@@ -197,7 +227,9 @@ class Pipeline:
         n_malicious = 0
         n_benign = 0
         tp = fp = tn = fn = 0
-        block = escalate = allow = 0
+        block = escalate = defer = allow = 0
+        # hard-block confusion (block only)
+        hb_tp = hb_fp = hb_tn = hb_fn = 0
         tier1_invoked_count = 0
         latencies = []
 
@@ -210,13 +242,16 @@ class Pipeline:
             else:
                 n_benign += 1
 
-            pred = 1 if v["final_decision"] in ("block", "escalate") else 0
+            # review-recall view: block/escalate/defer all count as flagged
+            pred = 1 if v["final_decision"] in ("block", "escalate", "defer") else 0
             if v["tier1_invoked"]:
                 tier1_invoked_count += 1
             if v["final_decision"] == "block":
                 block += 1
             elif v["final_decision"] == "escalate":
                 escalate += 1
+            elif v["final_decision"] == "defer":
+                defer += 1
             else:
                 allow += 1
             latencies.append(v["total_ms"])
@@ -230,15 +265,30 @@ class Pipeline:
             else:  # pred == 0 and is_mal
                 fn += 1
 
+            # hard-block confusion (block only) — the red-line metric
+            hb = 1 if v["final_decision"] == "block" else 0
+            if hb and is_mal:
+                hb_tp += 1
+            elif hb and not is_mal:
+                hb_fp += 1
+            elif not hb and not is_mal:
+                hb_tn += 1
+            else:
+                hb_fn += 1
+
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
         f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
         accuracy = (tp + tn) / n if n else 0.0
-        # detection_rate: fraction of malicious records flagged (block OR escalate)
+        # detection_rate: fraction of malicious records flagged (block/escalate/defer)
         detection_rate = tp / n_malicious if n_malicious else 0.0
         block_rate = block / n if n else 0.0
         escalate_rate = escalate / n if n else 0.0
+        defer_rate = defer / n if n else 0.0
         tier1_invocation_rate = tier1_invoked_count / n if n else 0.0
+        # hard-block metrics (the v0.3 red-line: benign hard-block FP)
+        hardblock_benign_fp = hb_fp / n_benign if n_benign else 0.0
+        hardblock_recall = hb_tp / n_malicious if n_malicious else 0.0
 
         latencies_sorted = sorted(latencies)
 
@@ -264,6 +314,9 @@ class Pipeline:
             "detection_rate": detection_rate,
             "block_rate": block_rate,
             "escalate_rate": escalate_rate,
+            "defer_rate": defer_rate,
+            "hardblock_recall": hardblock_recall,
+            "hardblock_benign_fp": hardblock_benign_fp,
             "tier1_invocation_rate": tier1_invocation_rate,
             "p50_ms": _pct(0.50),
             "p90_ms": _pct(0.90),
