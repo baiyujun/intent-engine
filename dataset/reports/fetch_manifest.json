@@ -1,8 +1,8 @@
 {
   "agentdojo": {
     "source_ref": "089ed468cf3ed0322acc66b0211f26d9d90dbf60",
-    "fetched_at": "2026-07-07T10:39:00Z",
-    "action": "pull",
+    "fetched_at": "2026-07-10T03:53:40Z",
+    "action": "clone",
     "url": "https://github.com/ethz-spylab/agentdojo"
   },
   "injecagent": {

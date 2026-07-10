@@ -1,0 +1,20 @@
+# Benign multi-turn via promptfoo generate dataset — WORKING APPROACH.
+# Root cause fully diagnosed: promptfoo generate-dataset's mechanism is
+# "template + {{variable}} filling" — it generates variable VALUES per persona
+# and substitutes them into the seed template. A seed with NO variables makes
+# the model return empty content (0 cases). FIX: put the multi-turn structure
+# INTO a templated seed with {{variables}}, so promptfoo fills them.
+# Generation logic stays entirely in promptfoo (persona + variable synthesis);
+# we only author the template + format instructions (glue, not a generation loop).
+description: benign-multiturn-promptfoo-templated
+
+prompts:
+  - "TURN1: I'm a {{role}} and I need to {{task1}}. Can you help me work through this? || TURN2: Thanks, now I'm running into an issue where {{problem}}. Can you help me debug it? || TURN3: Great, that helped. Now let's {{task2}} to make sure everything is solid. || TURN4: Finally, could you {{task3}} so we can wrap this up?"
+
+providers:
+  - id: deepseek:deepseek-v4-flash
+    label: deepseek-generator
+    config:
+      max_tokens: 4096
+      passthrough:
+        enable_thinking: false
