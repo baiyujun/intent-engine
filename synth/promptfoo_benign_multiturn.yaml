@@ -1,0 +1,14 @@
+# Benign multi-turn control generation config (NON-redteam: promptfoo generate dataset)
+# promptfoo's redteam module is adversarial-only. For benign multi-turn controls we
+# use promptfoo's regular `generate dataset` (the benign generator), then write glue
+# code to split each generated multi-turn conversation into our schema turns.
+description: benign-multiturn-control-generation
+
+prompts:
+  - "{{user_input}}"
+
+providers:
+  - id: deepseek:deepseek-v4-flash
+    label: deepseek-generator
+    config:
+      max_tokens: 4096
