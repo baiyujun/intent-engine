@@ -86,15 +86,17 @@ def _extract_json(text: str) -> dict | None:
 
 
 def chat(messages: list[dict], *, temperature: float = 0.0,
-         max_tokens: int = 8192) -> tuple[str, float, dict]:
+         max_tokens: int = 16384) -> tuple[str, float, dict]:
     """Call the LLM. Returns (content, latency_ms, meta).
 
-    max_tokens default is 8192 (NOT 1024): deepseek-v4-pro is a reasoning model
-    that consumes a large reasoning token budget before emitting JSON in
-    `content`; 1200 max_tokens truncates mid-reasoning → empty content → parse
-    failure → false "suspicious" fallback. The v0.4 gate initially failed 0/5
-    runs purely due to this token-budget bug, not judgment. 8192 lets the model
-    finish reasoning and emit the JSON.
+    max_tokens default is 16384: deepseek-v4-pro is a reasoning model that consumes
+    a large reasoning token budget before emitting JSON in `content`; smaller
+    budgets truncate mid-reasoning → empty content → parse failure → false
+    "suspicious" fallback. The v0.4 gate initially failed 0/5 runs purely due to
+    this token-budget bug, not judgment (verified: 8192 lets the model finish on
+    most cases, but boundary cases — where the model thinks longest — still
+    truncated; the model's true cap is 102398). 16384 leaves ample reasoning room
+    without letting every call run to the full cap.
 
     Raises on HTTP/transport error so the caller can apply the honest fallback.
     """
