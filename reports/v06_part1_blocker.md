@@ -212,3 +212,34 @@ This is the honest end state. Part 1 does NOT produce 4 attack-family multi-turn
 round. The reverse-hypothesis question (Part 2) does NOT depend on Part 1 and is the higher-
 priority open item — proceeding to Part 2. Awaiting your call on whether to defer Part 1
 outright or revisit when a promptfoo cloud account exists.
+
+## Reuse check — should the regex QA script use promptfoo's `grader` field instead?
+
+You asked: the custom plugin's `grader` field is a scoring mechanism paired with the
+generator — could it do the "turn-k names a resource not in turn-(k-1)" check, replacing my
+parallel regex script? Checked the docs (two questions, two answers):
+
+1. **Is `grader` rule/regex-capable, or always LLM?** Always LLM. Docs: "Custom plugin graders
+   are plain `llm-rubric assertions." "Promptfoo renders it into an `llm-rubric` assertion and
+   applies it to each generated test case." There is NO syntax for a regex/contains grader —
+   the `grader` field is a Nunjucks template rendered to llm-rubric. So grader = +1 LLM call.
+
+2. **Can a non-LLM regex/contains assertion attach to a test case to check the generated
+   PROMPT text itself (not a target response)?** No. Non-LLM assertions (`regex`, `contains`,
+   `icontains`) DO exist and attach via `defaultTest.assert`, but the docs are explicit that
+   assertions "validate **output**" (the model's response), with `output` as the first param.
+   There is no documented mechanism to assert properties of the generated *input/prompt text*
+   without running a target. Every assertion path operates on target output.
+
+**Why my regex QA script is the right tool here (not a redundant parallel mechanism):**
+- It checks the right object: the **generated turn text itself** (does turn2 name a resource
+  turn1 didn't), not a target response. Grader/assertion both operate on target output.
+- It's non-LLM (regex). Grader forces an llm-rubric call = +1 LLM call per test, for a check
+  a regex already does deterministically.
+- This path deliberately avoids the eval mechanism (it was diagnosed dead). Grader runs AT
+  eval, after generation — architecturally mismatched to a generate-only pipeline.
+
+**Decision: keep the regex QA script.** Grader cannot replace it (wrong object, forced LLM,
+eval-stage). The regex script is a 1-shot post-generation pass over the assembled turns —
+correct object, zero LLM, matches the no-eval pipeline. Reported both options honestly; chose
+to keep the regex script for the reasons above.
