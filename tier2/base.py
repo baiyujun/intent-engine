@@ -44,6 +44,14 @@ class Tier2Verdict:
     evidence : list[str]
         Concrete pointers (turn indices, matched spans) supporting the
         verdict. Defaults to [].
+    evidence_basis : str
+        "grounded" (verdict made from enough capsule evidence) or
+        "information_gap" (a key fact is missing — the verdict is a guess and
+        Tier3 investigation should resolve it). Defaults to "grounded".
+    information_gaps : list[str]
+        When evidence_basis=="information_gap", the SPECIFIC missing facts a
+        downstream investigator should query (e.g. "cannot tell whether
+        deployment-config-host is internal or external"). Defaults to [].
     model : str
         Identifier of the model that produced this verdict (e.g.
         ``'claude-sonnet-4-6'``). Empty for the v0 stub until populated.
@@ -55,6 +63,8 @@ class Tier2Verdict:
     confidence: float = 0.0
     reasoning: str = ""
     evidence: list[str] = field(default_factory=list)
+    evidence_basis: str = "grounded"
+    information_gaps: list[str] = field(default_factory=list)
     model: str = ""
     latency_ms: float = 0.0
 
