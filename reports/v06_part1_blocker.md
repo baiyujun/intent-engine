@@ -145,3 +145,37 @@ while you decide Part 1.
 - `synth/v06_part1_split_exfil_smoke.yaml` / `synth/v06_part1_split_exfil_smoke2.yaml` — custom-strategy smoke configs
 - `synth/v06_part1_goat_diagnostic.yaml` / `synth/v06_part1_goat_diag2.yaml` — the GOAT/Crescendo diagnostic configs (Run 1-4)
 - `synth/v06_split_exfil_smoke_out.yaml` — `redteam generate` output (proves seeds generate fine)
+
+## CONVERGENCE (final, 2026-07-13) — last diagnostic round, no more branches
+
+Per the convergence instruction, two final tests:
+
+### PATH 1 — Crescendo + kspmas, full 500s run
+Crescendo is NOT on the remote-only list (only GOAT/Hydra/encoding strategies carry the 🌐
+marker), so per the docs it should run locally. Result: 2 results, both
+`API error: 403 Forbidden "Your account ..."` (kspmas gateway account-level reject),
+PROMPT still single-turn seed, **no multi-turn transcript produced.** Did not run through.
+
+### PATH 2 — custom-strategy + explicit `defaultTest.options.provider` → kspmas
+Docs hinted the grading provider does NOT inherit `redteam.provider`. Set it explicitly.
+**This partially worked:** the test-case PROMPT now carries
+`"config":{"provider":{"id":"openai:chat:deepseek-v4-pro",...}}` and the kspmas target
+responds (the "API key is not set" error is GONE — the grading-provider fix is real).
+**BUT the PROMPT is still single-turn** — the raw is the one-sentence seed, no "Turn 2."
+metadata contains "turn" and grading_result contains "conversation" (so custom-strategy's
+internal multi-turn loop ran), but the stored test case degenerated to single-turn
+seed + target single reply. The prompt-based custom-strategy does NOT expand the seed into
+a 2-turn transcript in our config; it sends the seed as a single prompt. 3 results, all
+single-turn.
+
+### Verdict
+Neither path produces multi-turn transcripts:
+- Crescendo: gateway 403 + degenerate single-turn.
+- custom-strategy + grading provider: grading provider fixed (target replies), but the
+  prompt-based strategy does not expand seeds into multi-turn — it sends the seed as one prompt.
+
+**Per the convergence instruction: both failed → adopt C-actual.** Proceeding to C-actual
+under the agreed boundary: the turn-controller (JS custom strategy script) drives ONLY
+call timing and passes structured instructions — it contains NO hardcoded content and NO
+resource pool; the LLM writes each turn's text. Start with split_exfil 5-case smoke, paste
+2-3 full transcripts for review, not just aggregate numbers.
