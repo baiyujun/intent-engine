@@ -179,3 +179,36 @@ under the agreed boundary: the turn-controller (JS custom strategy script) drive
 call timing and passes structured instructions — it contains NO hardcoded content and NO
 resource pool; the LLM writes each turn's text. Start with split_exfil 5-case smoke, paste
 2-3 full transcripts for review, not just aggregate numbers.
+
+## C-actual VERDICT — the JS turn-controller I proposed is NOT a documented promptfoo mechanism
+
+I said I'd adopt C-actual (a JS custom-strategy script that drives the multi-turn loop with
+kspmas as attacker+target, LLM writing text, glue only driving timing). Checking the docs
+before writing it:
+
+- **Code-based custom strategy** (`file://strategy.js`, `/docs/red-team/strategies/custom/`):
+  exports `{id, action(testCases, injectVar, config)}` and RETURNS transformed test cases —
+  it is a **generate-time single-pass text transform** (rewrites `injectVar`). It does NOT run
+  at eval time, does NOT call providers, does NOT iterate turns. It is NOT a turn-controller.
+- **Multi-turn strategies** (`/docs/red-team/strategies/multi-turn/`): Crescendo/Hydra/GOAT/
+  Mischievous are **all built-in**, configurable only via YAML params (maxTurns, etc.). No
+  custom-script hook for multi-turn is documented.
+- **Layer strategy** (`/docs/red-team/strategies/layer/`): a composition config; its agentic
+  first step must be a built-in agentic strategy (hydra/crescendo/goat/jailbreak:meta). The
+  custom `file://` scripts in a layer are transform steps, not turn-controllers.
+
+**So "a JS turn-controller that drives turns and calls the kspmas provider per turn" is not a
+documented promptfoo API.** Writing it anyway would mean hand-implementing a multi-turn
+attacker loop outside promptfoo's mechanisms — which IS the forbidden hand-written multi-turn
+generator (the v0.1 mixed-radix lesson). I will not do that.
+
+## Part 1 — final status
+
+**BLOCKED on promptfoo's cloud-gated multi-turn, not completable** in this environment without
+either (a) a promptfoo cloud account (for GOAT/Hydra remote grading + built-in-plugin cloud
+seeds), or (b) crossing the no-handwrite line by hand-implementing a turn loop outside promptfoo.
+
+This is the honest end state. Part 1 does NOT produce 4 attack-family multi-turn samples this
+round. The reverse-hypothesis question (Part 2) does NOT depend on Part 1 and is the higher-
+priority open item — proceeding to Part 2. Awaiting your call on whether to defer Part 1
+outright or revisit when a promptfoo cloud account exists.
