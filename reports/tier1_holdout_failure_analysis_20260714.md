@@ -165,7 +165,9 @@ role flag would encode source/label identity rather than action semantics.
 
 An analysis-only column detects a standalone `sh` or `/bin/sh` interpreter token.
 It explicitly excludes file suffixes such as `scripts/build.sh`; that negative case
-was added after an earlier regex falsely matched 350 benign synthetic records.
+was added after an earlier regex incorrectly treated `.sh` file paths as shell
+interpreter invocations. The prior exploratory hit count was not persisted, so no
+numeric count is claimed here.
 
 | split | baseline | + shell token | change |
 |---|---:|---:|---:|
