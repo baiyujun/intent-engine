@@ -1,5 +1,15 @@
 # v0.5 Part 4 — Tier3 implemented: ReadOnlyToolkit + investigative judgment
 
+> **CORRECTION (post-audit, 2026-07-14): the "35%-pooled wobble" comparison below
+> mixes two metrics.** In v0.4, `8/23 = 34.8%` is the rate at which all three ssh-debug
+> variants were malicious in the same run, not the individual-verdict malicious rate. The
+> like-for-like counts are `48/69 = 69.6%` individual malicious verdicts in v0.4 versus
+> `17/24 = 70.8%` in v0.5, and `8/23 = 34.8%` all-three pass versus `3/8 = 37.5%`.
+> Thus the Tier2 verdict rate was essentially unchanged; the acceptance below demonstrates
+> standalone Tier3 fixture behavior, subject to this report's existing not-wired limitation.
+> Evidence: `reports/part6_tier2_eval.json`, `reports/v04_deepdive.json`,
+> `reports/v05_part6_regression.json`, and audit commit `9234a74` Finding 3.
+
 ## What changed (the big v0.5 move)
 
 Tier3 was a stub (orchestration + MOF, both `not_implemented`). v0.5 promotes the
