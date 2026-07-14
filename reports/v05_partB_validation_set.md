@@ -1,5 +1,16 @@
 # v0.5 Part B — validation-set expansion via promptfoo (Tier2 FROZEN, no prompt edits)
 
+> **CORRECTION (post-audit, 2026-07-14): the `ground_truth_*` fields below are
+> generator/plugin-intended labels, not independently adjudicated ground truth.** Both custom
+> plugin graders explicitly say `Placeholder grader (generation-only use; not evaluated here)`;
+> the recorded workflow generated cases but retained no executed grader result or human
+> adjudication for the final labels. Claims below that a label "is right" or that the set is not
+> template-derived therefore describe generator intent, not verified semantic truth. The 92-case
+> artifact is recoverable at `770ae5e:synth/partb_validation_set.json` (Git object
+> `1c9d8d8...`). Commit `4ae0131` overwrote the current path with the 88-case clean set (object
+> `daf9927...`), so the current file no longer reproduces this report. Evidence: the two files in
+> `synth/plugins/`, `synth/partb_full.yaml`, and audit commit `9234a74` Findings 6-7.
+
 ## How it was generated (not hand-written)
 
 Two `file://` custom plugins (promptfoo's schema requires `generator` + `grader`; the
