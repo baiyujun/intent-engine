@@ -1,5 +1,14 @@
 # v0.6 Part 2 — A: adversarial verification of the narrowing (2 agents, 2/2 agree)
 
+> **CORRECTION (upstream-label provenance audit, 2026-07-14): the "Part B 87%"
+> referenced below is not an independently established semantic-judgment accuracy.** It is
+> `40/46` agreement with generator/plugin-intended labels on the clean rerun; the plugin graders
+> were generation-only placeholders and no final-case adjudication was retained. This does not
+> change the 58.3% AgentDojo narrowing or the need for a complementary non-injection test, but it
+> removes 87% as an independently validated semantic baseline. Evidence:
+> `synth/plugins/*.yaml`, `tier2/v05_partC_eval.py`, `reports/v06_part0_clean88_eval.md`, and
+> audit commit `9234a74` Finding 6.
+
 Your structural review asked me to adversarially verify my own 2 narrowing claims before
 reporting them. I ran a 3-agent blind workflow (one agent failed schema; 2 returned valid
 verdicts — both AGREE on the substance).
