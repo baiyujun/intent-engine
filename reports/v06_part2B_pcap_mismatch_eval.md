@@ -1,5 +1,16 @@
 # v0.6 Part 2-B — FROZEN Tier2 on 8 purpose-capability mismatch edge cases
 
+> **CORRECTION #4 (upstream-label provenance audit, 2026-07-14): the 87% PartB
+> comparison baseline is plugin-label agreement, not independent semantic accuracy.** The clean
+> promptfoo rerun matched generator/plugin-intended labels on `40/46` inconsistent rows; its
+> generation-only graders did not adjudicate those labels. Therefore the numerical proximity of
+> this set's 75% dataset-label score to the generator set's 87% cannot establish transfer or
+> generalization. The 8-case results remain component evidence subject to the existing n=8,
+> shared-author, hidden-GT, and pipeline-disconnection corrections below; they must stand on those
+> facts rather than on 87% as a validated baseline. Evidence: `synth/plugins/*.yaml`,
+> `tier2/v05_partC_eval.py`, `reports/v06_part0_clean88_eval.md`, and audit commit `9234a74`
+> Finding 6.
+
 > **CORRECTION #3 (ground-truth visibility audit, 2026-07-14): the 6/8 must be read as a
 > dataset-label score, not a clean binary accuracy.** For the two label-mismatch cases (#002 and
 > #007), the `why_mismatch` metadata assumes an external destination, but the model-visible
