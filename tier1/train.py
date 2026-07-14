@@ -1,9 +1,10 @@
 """Tier 1 XGBoost training / evaluation / ablation script.
 
-Reads real + synthetic training data, builds a benign profile, extracts 42
-features, trains an XGBClassifier with paper hyperparams (n_estimators=180,
-max_depth=4), evaluates on test_indist and test_holdout_family, then runs a
-leave-one-out ablation of the fraud-inspired group (cols 31-41).
+Reads real + synthetic training data, builds a benign profile, extracts 40
+features, trains an XGBClassifier with two paper-aligned parameters
+(n_estimators=180, max_depth=4) and XGBoost defaults for the rest,
+evaluates on test_indist and test_holdout_family, then runs a
+leave-one-out ablation of the local fraud-inspired group (cols 31-39).
 
 Outputs:
   tier1/models/xgboost_full.json    — full 40-feature model
@@ -154,7 +155,7 @@ def main():
     metrics_id = eval_metrics(clf, X_id, y_id, "test_indist")
     metrics_ho = eval_metrics(clf, X_ho, y_ho, "test_holdout")
 
-    # 6. Ablation: drop Fraud-inspired features (cols 31-41)
+    # 6. Ablation: drop local fraud-inspired features (cols 31-39)
     fraud_cols = FEATURE_GROUPS["fraud"]
     X_train_abl = np.delete(X_train, fraud_cols, axis=1)
     X_id_abl = np.delete(X_id, fraud_cols, axis=1)
@@ -211,10 +212,9 @@ def main():
             "(data unavailable in v0)",
             "novelty features depend on benign training profile coverage; "
             "unseen-but-benign files/urls in test will trigger false positive flags",
-            "novelty_*_score are a faithful simplification: the paper frames "
-            "them as novelty against a fitted profile; we implement the flag "
-            "exactly and set score=flag (0/1) since v0 has no embedding-distance "
-            "profile — recorded as a simplification, not the continuous distance",
+            "novelty_*_score are exact aliases of their corresponding flags; "
+            "they are retained for saved-model compatibility and are not "
+            "independent paper features",
             "The paper trains on synthetic-only data; we add synthetic to real "
             "training + promptfoo LLM-generated adversarial inputs (dilution, "
             "scaled to ~3864 across 30 coding-agent/agentic plugins + 4 encoding "
@@ -222,9 +222,9 @@ def main():
             "promptfoo is adversarial-only, so it pushes the train class balance "
             "to ~2.45:1 malicious:benign; no scale_pos_weight is applied in Part 1 "
             "(kept consistent across all comparison groups in Part 3).",
-            "Fraud group is 9 features, not the paper's stated 11: the paper "
-            "prose explicitly defines 9; the 2 inferred fillers "
-            "(max_cumulative_risk, action_burst_5) were dropped as not faithful",
+            "Local fraud group is 9 features, not the official implementation's "
+            "11: three official prior-state signals are absent, a distinct-tool "
+            "proxy lives in session, and two local novelty-score columns alias flags",
         ],
     }
     report.write_text(json.dumps(results, indent=2, default=str))

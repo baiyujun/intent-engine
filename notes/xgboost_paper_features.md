@@ -1,5 +1,14 @@
 # XGBoost Paper Feature Reference (arXiv:2605.01143)
 
+> **CORRECTION (official-code audit, 2026-07-14):** this is the pre-audit design
+> note and is not an authoritative 42-column specification. The paper prose does
+> not define the inferred local list below; the authors' linked implementation at
+> `acd51089d05cc13fcb29644170db764a94d936f6` does. Local Tier1 is a 40-column
+> adaptation with exact 0 / proxy 32 / missing 10, not a reuse of the official
+> feature vector. Use `reports/tier1_paper_feature_mapping_audit.md` and
+> `reports/tier1_holdout_failure_analysis_20260714.json`; the “exact,” inferred
+> fillers, and reuse-map claims below are historical and retracted.
+
 Title: "A Low-Latency Fraud Detection Layer for Detecting Adversarial Interaction Patterns in LLM-Powered Agents"
 Authors: Sheldon Yu, Yingcheng Sun, Hanqing Guo, Julian McAuley, Qianqian Tong (UCSD, UNC Greensboro, IU Bloomington)
 Source: local PDF provided by user (full text extracted to `_xgboost_paper_raw.txt`)

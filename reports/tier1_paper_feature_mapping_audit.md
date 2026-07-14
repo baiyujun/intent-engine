@@ -1,5 +1,14 @@
 # Tier1 feature mapping audit against arXiv:2605.01143
 
+> **CORRECTION (holdout follow-up, 2026-07-14):** under this audit's own
+> “related concept but different source/window/formula = proxy” rule,
+> `follows_recent_retrieval` has the local `tool_web_fetch` proxy. The corrected
+> tally is **exact 0 / proxy 32 / missing 10**, not 0 / 31 / 11. This does not make
+> the columns equivalent: official code checks whether either of the prior two
+> proposed tools is exactly `web_fetch`; local code scans the full prefix for a
+> fetch-like verb followed by a URL. Evidence is pinned in
+> `reports/tier1_holdout_failure_analysis_20260714.json`.
+
 > Audit date: 2026-07-14
 > Project revision inspected: `5fe8403`
 > Scope: `tier1/features.py`, tracked XGBoost model metadata, arXiv v2 Section 3.3 / Table 4,
@@ -14,8 +23,8 @@
 - The paper gives group-level prose and Table 4 gives only group dimensions. It does NOT contain
   a 42-row feature-definition table. The exact experimental columns are recoverable from the
   authors' code repository explicitly linked by the paper.
-- Against those 42 official experimental columns: **exact 0, approximate proxy 31, missing in
-  this project 11**. "Approximate" means the concept is related but the source field, prefix
+- Against those 42 official experimental columns: **exact 0, approximate proxy 32, missing in
+  this project 10**. "Approximate" means the concept is related but the source field, prefix
   window, or formula differs; it does not mean reproduced.
 - This does not show that the current XGBoost has no predictive value. It invalidates the narrower
   claims of paper-feature reproduction and paper-compatible group ablation/importance.
@@ -121,7 +130,7 @@ entire prefix, so a two-turn read-then-send record sets both `tool_file_read=1` 
 `tool_network_request=1`. The tool group therefore contains trajectory history and cannot support
 the paper's action-identity-vs-trajectory ablation interpretation.
 
-### Context group (official 6; exact 0 / proxy 5 / missing 1)
+### Context group (official 6; exact 0 / proxy 6 / missing 0)
 
 | official experimental feature | current candidate | class | concrete mismatch |
 |---|---|---|---|
@@ -130,7 +139,7 @@ the paper's action-identity-vs-trajectory ablation interpretation.
 | `external_action_hits` | `suspicious_pattern_in_context` | proxy | Partial regex overlap; no external-input action count. |
 | `suspicious_external_flag` | `suspicious_pattern_in_context` | proxy | Does not isolate retrieved/tool-mediated content. |
 | `untrusted_external_flag` | `has_external_content` | proxy | Current treats outbound send/email/upload text as "external content". Direction is reversed. |
-| `follows_recent_retrieval` | none | missing | No actual retrieval-history signal; the similarly named local rule is based on outbound network text. |
+| `follows_recent_retrieval` | `tool_web_fetch` | proxy | Official checks the prior two proposed tools for exact `web_fetch`; local scans the full prefix for a fetch-like verb followed by a URL. |
 
 Minimal runtime probe:
 

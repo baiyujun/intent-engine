@@ -1,26 +1,22 @@
-"""Tier 1 feature extraction — XGBoost features in 5 groups.
+"""Tier 1 feature extraction — project-specific XGBoost features in 5 groups.
 
-Implements the feature set from arXiv:2605.01143 (Section 3.3) on top of the
-v0 Agent intent record schema (see dataset/src/schema.py).
+This 40-dimensional heuristic adaptation is inspired by the five signal groups
+in arXiv:2605.01143. It does not reproduce the authors' 42 experimental columns;
+see reports/tier1_paper_feature_mapping_audit.md.
 
 Groups / indices:
   prompt  0-10   (11)  per-turn surface signals
   session 11-18  (8)   turn-indexed behavioural aggregates
-  tool    19-24  (6)   one-hot tool indicators + mismatch flag
-  context 25-30  (6)   surrounding untrusted-environment signals
+  tool    19-24  (6)   full-prefix text action proxies + mismatch flag
+  context 25-30  (6)   outbound/suspicious full-prefix text proxies
   fraud   31-39  (9)   fraud-inspired trajectory / novelty / exfil-gap features
 
 Honest feature-count note:
-  The paper's fraud-inspired paragraph (Section 3.3, 4 sub-bullets) explicitly
-  defines 9 features: (i) cumulative tool-risk path + turn-to-turn delta +
-  monotonicity flag (3); (ii) action-burst score, last-3-turns (1); (iii)
-  novelty flag + score for the email recipient (2) and for the file path (2);
-  (iv) context-exfil gap (1). That is exactly 9. We previously padded to 11 by
-  adding `max_cumulative_risk` and `action_burst_5` as "inferred fillers" to
-  match the paper's stated group size of 11 — but the paper never defines
-  those two in prose, so padding them in was not faithful. They are now
-  REMOVED. The fraud group therefore has 9 features (not 11), and the total
-  feature count is 40 (not 42). We report 9, not 11 — see reports.
+  The authors' fixed implementation has 11 trajectory columns. This local fraud
+  group has 9: seven conceptual proxies plus two project-only novelty-score
+  aliases. It omits the official sensitive-read count, external-recipient count,
+  and read-then-send fields; a distinct-tool proxy lives in the local session
+  group. The total is therefore 40, not the official 42.
 
 Notes / honest caveats baked into the code:
   - denied_tool_call_count and failed_tool_call_count are always 0 because the
@@ -30,12 +26,9 @@ Notes / honest caveats baked into the code:
     records). Pass None to use empty sets -> every recipient/filepath is
     "novel" by default, so the *_flag features default to 0 when there is no
     matching turn.
-  - novelty_*_score are a faithful simplification: the paper frames them as
-    "novelty flags ... evaluated against a benign-only reference profile"
-    (analogous to "new device" flags). We implement the *flag* (set/new vs
-    seen/known) faithfully; the *_score is the same 0/1 rather than a
-    learned continuous distance, since we have no embedding-distance profile
-    in v0. This is recorded as a simplification, not hidden.
+  - novelty_*_score are exact aliases of their corresponding flags. They are
+    retained for saved-model compatibility, not claimed as independent paper
+    features.
   - Several fraud-inspired features (cumulative_risk, monotonicity,
     action_burst, context_exfil_gap) are degenerate (=0 / -1) for the
     single-turn records that dominate the real datasets; they only carry
@@ -192,7 +185,7 @@ FEATURE_NAMES = [
     "has_external_content", "suspicious_pattern_in_context",
     "sensitive_resource_involved", "risky_action_after_external_input",
     "external_content_count", "context_suspicion_score",
-    # group 5: fraud (31-39) — 9 features, per the paper's explicit definitions
+    # group 5: fraud (31-39) — 9 project-specific trajectory features
     "cumulative_risk_sum", "risk_delta", "monotonicity_flag", "action_burst_score",
     "novelty_recipient_flag", "novelty_recipient_score", "novelty_filepath_flag",
     "novelty_filepath_score", "context_exfil_gap",
@@ -419,7 +412,7 @@ def extract_features(record: dict, benign_profile: dict | None = None) -> list[f
         has_external_content, suspicious_pattern_in_context,
         sensitive_resource_involved, risky_action_after_external_input,
         external_content_count, context_suspicion_score,
-        # fraud 31-39 (9 features — no max_cumulative_risk / action_burst_5 fillers)
+        # fraud 31-39 (9 local features)
         cumulative_risk_sum, risk_delta, monotonicity_flag, action_burst_score,
         novelty_recipient_flag, novelty_recipient_score, novelty_filepath_flag,
         novelty_filepath_score, context_exfil_gap,

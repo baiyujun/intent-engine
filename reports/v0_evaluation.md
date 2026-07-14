@@ -1,5 +1,13 @@
 # v0 Intent-Recognition Guardrail — Evaluation Report
 
+> **CORRECTION (official-code audit, 2026-07-14):** the Tier1 feature-count
+> claims below are false. The evaluated local model has 40 project-specific
+> columns (`11/8/6/6/9`), and its ablation drops local columns 31-39; it is not
+> the paper authors' 42-column (`11/8/6/6/11`) vector. The numeric rows remain a
+> historical evaluation of that local model, not a paper-feature reproduction.
+> See `reports/tier1_paper_feature_mapping_audit.md` and
+> `reports/tier1_holdout_failure_analysis_20260714.md`.
+
 ## 1. Goal & scope
 
 This is the **v0 prototype** of a four-tier intent-recognition guardrail for

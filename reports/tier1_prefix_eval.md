@@ -1,5 +1,14 @@
 # Tier 1 Prefix-Level Evaluation Report (the paper's core, previously untested)
 
+> **CORRECTION (current-model follow-up, 2026-07-14):** this file is a valid
+> historical prefix run, not a current-HEAD result. Its holdout row is
+> `TP=508 / FN=285 / Recall=0.6406`; the current saved model reproduces
+> `TP=520 / FN=273 / Recall=0.6557`. Its synthetic row used 3,200 records while
+> the current source has 6,400, and model weights changed at `7bbfa03`. The
+> historical synth AUC 0.934 / Recall 0.906 is not retracted, but it must not be
+> mixed with the current FN case set. Current evidence and case-level analysis:
+> `reports/tier1_holdout_failure_analysis_20260714.{json,md}`.
+
 arXiv:2605.01143 evaluates its detector at the **prefix** level: for each
 multi-turn interaction, every partial history `S1:t` (turns 1..t) is an
 evaluation instance, and a prefix is labeled adversarial (`y=1`) if the
