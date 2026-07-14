@@ -1,5 +1,16 @@
 # v0.5 Part 2 — Tier2 `evidence_basis` field (information-gap → Tier3 trigger)
 
+> **CORRECTION (post-audit, 2026-07-14): `evidence_basis` is not a live Tier3
+> trigger.** This report verifies a Tier2 component output and defines a proposed trigger
+> input. Part 4 implements a standalone investigator, but neither report wires that output into
+> `Pipeline.run()`: `tier2_enabled` defaults to `False`, `_decide()` reads only Tier0/Tier1,
+> and `tier3/orchestrator.py` remains the fixed `not_implemented` pipeline stub. Therefore every
+> statement below about escalation or Part 4 "wiring" is design/conditional language, not current
+> system behavior. Git-object comparison found `pipeline.py` (`d72f1e7...`) and
+> `tier3/orchestrator.py` (`2891384...`) identical at the Part 6 commit `3e26c46` and audit
+> revision; evidence and replay are recorded in audit commit `9234a74`,
+> `reports/v05_historical_reports_audit_20260714.md` Finding 1.
+
 ## What was built
 
 `Tier2Verdict` now carries `evidence_basis` ∈ {"grounded","information_gap"} plus
