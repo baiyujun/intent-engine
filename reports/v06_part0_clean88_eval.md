@@ -1,5 +1,18 @@
 # v0.6 Part 0 — frozen Tier2 re-eval on the CLEAN 88-case set (4 reasoning-leaks removed)
 
+> **CORRECTION #2 (post-audit, 2026-07-14): cleaning invalid meta-text did not
+> independently adjudicate the remaining labels.** The 88 rows still inherit their labels from
+> generation plugins whose graders were generation-only placeholders. Accordingly, `42/42` and
+> `40/46 = 87.0%` below are plugin-label agreement, not independently established semantic
+> accuracy. Seven inconsistent rows have majority `evidence_basis=information_gap`; six
+> malicious-lean rows are counted as label matches and one benign-lean row as a mismatch even
+> though the field records unresolved facts. The existing run-to-run correction remains valid,
+> but neither cleaning nor rerunning establishes the surviving labels as ground truth. The old
+> 92-case artifacts are not separate files at HEAD: recover them at
+> `770ae5e:synth/partb_validation_set.json` and
+> `f52b28e:reports/v05_partC_frozen_eval.json`; `4ae0131` overwrote both current paths with the
+> clean-88 artifacts. Evidence: audit commit `9234a74` Findings 6-7.
+
 > **What this is:** the v0.5.1 / v0.6 Part 0 data-cleaning step. The v0.5 Part C ran on 92
 > promptfoo cases that contained **4 reasoning-leak cases** (#034/#055/#060/#083) — the
 > generator model leaked its CoT/meta-text into output, not real instructions, so their
