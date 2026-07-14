@@ -1,5 +1,11 @@
 # Part 1 补充 — 四类决策的原始计数与 defer 逐条样本
 
+> **CORRECTION (51-record relabel, 2026-07-14):** 下表按旧的 51 恶意 / 40
+> 良性口径分组，不能再作为当前混淆矩阵。相同当前 pipeline 的总决策仍为
+> `block=43, defer=22, escalate=5, allow=21`，但正确标签是 48/43；三条新良性
+> 全部进入 review，其中两条被 hard-block，因此 hard-block FP 是 **3/43=7.0%**。
+> 逐链原始 JSON 与结论见 `reports/multiturn_relabel_rerun_20260714.md`。
+
 ## 原始计数（v0.3 新融合规则，真实 pipeline）
 
 | 决策 | 多轮恶意 (n=51) | 多轮良性 (n=40) |

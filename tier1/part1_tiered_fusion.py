@@ -36,6 +36,7 @@ from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_sco
 
 from pipeline import Pipeline  # noqa: E402
 from tier0.fusion import judge as t0_judge  # noqa: E402
+from tier1.eval_data import load_multiturn_holdout  # noqa: E402
 from tier1.features import extract_features, build_benign_profile  # noqa: E402
 
 DATA = _REPOSITORY / "dataset"
@@ -159,9 +160,7 @@ def main():
     clf.load_model(str(REPO / "tier1" / "models" / "xgboost_full.json"))
 
     # multi-turn holdout (benign has Part-0 caveat — preliminary only)
-    mt_mal = load_jsonl(DATA / "processed" / "test_holdout_multiturn.jsonl")
-    mt_ben = load_jsonl(DATA / "processed" / "test_holdout_multiturn_benign.jsonl")
-    mt_all = mt_mal + mt_ben
+    mt_all = load_multiturn_holdout(DATA)["records"]
     # single-turn (off-target, but part of the comparison for completeness)
     test_indist = load_jsonl(DATA / "processed" / "test_indist.jsonl")
     test_holdout = load_jsonl(DATA / "processed" / "test_holdout_family.jsonl")
@@ -196,7 +195,11 @@ def main():
               f"{r['new_hard']['benign_fp']:>8.1%}{r['new_flag']['n_defer']:>9}", file=sys.stderr)
     out["sweep"] = sweep
 
-    outpath = REPO / "reports" / "part1_tiered_fusion.json"
+    outpath = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else REPO / "reports" / "part1_tiered_fusion.json"
+    )
     outpath.parent.mkdir(exist_ok=True)
     outpath.write_text(json.dumps(out, indent=2, default=str))
     print(f"\nPart 1 written to {outpath}", file=sys.stderr)

@@ -1,5 +1,13 @@
 # Part 3 — Dual-Track Evaluation (Single vs Multi, NEVER Merged)
 
+> **CORRECTION (51-record relabel, 2026-07-14):** current-code relabel rerun has
+> 188 malicious + 169 benign prefixes, prefix AUC **0.8875**, recall **96.81%**,
+> precision **63.19%**; record AUC is **0.9142**. The historical 205/152 split and
+> metrics below use the invalid 51/0 labels. The recall increase is a composition
+> effect, not a model improvement. Evidence:
+> `reports/relabel51_part3_dualtrack_eval.json` and
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## The Core Result
 
 The two tracks are evaluated **separately** and never combined into one metric. They answer different questions.

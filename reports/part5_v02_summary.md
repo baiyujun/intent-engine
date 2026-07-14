@@ -1,5 +1,11 @@
 # Part 5 — Single-Model Dual-Track Assessment + v0.2 Summary
 
+> **CORRECTION (51-record relabel, 2026-07-14):** the multi-turn rows below use
+> invalid 51/0 labels. On identical current code the corrected record AUC is
+> **0.9142** (old-label rerun 0.9275), pipeline review recall is **47/48=97.92%**,
+> and precision is **67.14%**. The broad dual-track direction survives, but the
+> historical point estimates do not. See `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## The Single-Model Question (Part 5)
 
 The user asked: if a single XGBoost can't handle both single-turn and multi-turn, report honestly — but do NOT decide to split models (that's an architecture decision for the human).

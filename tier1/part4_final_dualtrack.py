@@ -29,6 +29,7 @@ from sklearn.metrics import roc_auc_score  # noqa: E402
 from scipy.stats import beta  # noqa: E402
 
 from tier0.fusion import judge as t0_judge  # noqa: E402
+from tier1.eval_data import load_multiturn_holdout  # noqa: E402
 from tier1.features import extract_features, build_benign_profile, FEATURE_NAMES  # noqa: E402
 from tier1.prefix_eval import prefixes  # noqa: E402
 
@@ -79,7 +80,8 @@ def main():
     print("=" * 70, file=sys.stderr)
     print("TRACK 2 — MULTI-TURN (malicious side only; benign retired)", file=sys.stderr)
     print("=" * 70, file=sys.stderr)
-    mt_mal = load(P / "test_holdout_multiturn.jsonl")
+    mt_holdout = load_multiturn_holdout(DATA)
+    mt_mal = mt_holdout["malicious"]
     print(f"  multi-turn malicious: {len(mt_mal)} records", file=sys.stderr)
 
     # Tier1 prob on prefixes (continuous)
@@ -97,6 +99,11 @@ def main():
     out["track2_multiturn"] = {
         "note": "benign retired (handcrafted_untrusted); malicious side only",
         "n_malicious_records": len(mt_mal),
+        "n_reviewed_benign_records_excluded": sum(
+            1
+            for record in mt_holdout["reviewed"]
+            if not record["label"]["is_malicious"]
+        ),
         "n_prefixes": int(len(pf_y)),
         "tier1_prob_mean": float(pf_prob.mean()),
         "tier1_prob_median": float(np.median(pf_prob)),
@@ -180,7 +187,11 @@ def main():
     print(f"  => off-target overstated recall by {oft['hardblock_recall']-ot['hardblock_recall']:.1%} (absolute)",
           file=sys.stderr)
 
-    outpath = _REPO / "reports" / "part4_final_dualtrack.json"
+    outpath = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else _REPO / "reports" / "part4_final_dualtrack.json"
+    )
     outpath.write_text(json.dumps(out, indent=2, default=str))
     print(f"\nPart 4 written to {outpath}", file=sys.stderr)
 

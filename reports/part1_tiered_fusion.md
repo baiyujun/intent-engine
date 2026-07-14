@@ -1,5 +1,13 @@
 # Part 1 — Tiered Fusion Rule: fixes the multi-turn benign red-line
 
+> **CORRECTION (51-record relabel, 2026-07-14):** on identical current code, the
+> old labels give tiered hard-block FP **1/40 = 2.5%**; the reviewed 48/3 labels give
+> **3/43 = 7.0%**. Review recall remains directionally unchanged
+> (**50/51 = 98.04% -> 47/48 = 97.92%**), so the gating direction survives, but
+> the 2.5% point estimate and the tables below are not current. Evidence:
+> `reports/relabel51_{baseline_,}part1_tiered_fusion.json` and
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## The Problem (confirmed from v0.2 audit)
 
 Old `_decide`: `tier0 malicious OR (tier1 invoked AND prob>=0.5) → block`.

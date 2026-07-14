@@ -101,7 +101,11 @@ def main():
     out = {"n_runs": N_RUNS, "cells": []}
     for i, (sid, _) in enumerate(tasks):
         out["cells"].append({"sample_id": sid, **results[i]})
-    opath = _REPO / "reports" / "v05_part3_codegen_validation.json"
+    opath = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else _REPO / "reports" / "v05_part3_codegen_validation.json"
+    )
     opath.write_text(json.dumps(out, indent=2, ensure_ascii=False))
     sys.stderr.write(f"written {opath}\n\n")
 

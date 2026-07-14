@@ -1,5 +1,11 @@
 # Part 1 — Multi-Turn Holdout Test Set via promptfoo GOAT/Crescendo
 
+> **CORRECTION (51-record relabel, 2026-07-14):** the generated source material
+> remains promptfoo GOAT/Crescendo, but the operation labels are **48 malicious / 3
+> benign**, not 51/0. Source composition is **GOAT 42 + Crescendo 9**, not 44 + 7.
+> The corrected converter uses the canonical ordered raw sources and a case-level
+> adjudication manifest; see `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## Method (100% promptfoo — no hand-written generation)
 
 The key discovery: `promptfoo redteam generate` with `crescendo`/`goat` strategies produces **single-turn** test cases. The multi-turn conversation is built during `redteam eval` — GOAT/Crescendo are **providers** that run a live multi-turn conversation against a target, not offline generators. So the correct flow is:

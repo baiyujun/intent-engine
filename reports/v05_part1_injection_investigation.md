@@ -1,5 +1,12 @@
 # v0.5 Part 1 — Tier2 injection-integrity investigation (`_126` / `_182`)
 
+> **CORRECTION (51-record relabel, 2026-07-14):** `_126` is benign under the
+> model-visible operation-safety contract. Its benign verdict is therefore not
+> “right answer, wrong reason,” a malicious miss, or evidence that this record needs
+> Tier3. All such `_126` conclusions below are retracted; the `_182` integrity
+> analysis is unaffected. Evidence and fresh 6/6 grounded-benign Tier2 results:
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## Question (per task)
 
 Is the Tier2 judge — a guardrail *against* injection — itself **immune** to the

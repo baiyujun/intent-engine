@@ -1,0 +1,77 @@
+{
+  "handcrafted_untrusted_note": "40 multi-turn benign RETIRED (audit/security lexical gap 1.15). Multi-turn = malicious side only. Single-turn benign (n=31) bootstrap-CI'd.",
+  "track2_multiturn": {
+    "note": "benign retired (handcrafted_untrusted); malicious side only",
+    "n_malicious_records": 51,
+    "n_prefixes": 205,
+    "tier1_prob_mean": 0.944331543029445,
+    "tier1_prob_median": 0.9991056323051453,
+    "pct_prefixes_prob_ge_0.5": 0.9512195121951219,
+    "pct_prefixes_prob_ge_0.4": 0.9560975609756097,
+    "tier0_margin_mean": 0.07644806637060331,
+    "pct_tier0_mal_leaning": 0.0
+  },
+  "track1_on_target": {
+    "n": 192,
+    "n_mal": 161,
+    "n_ben": 31,
+    "tier1_auc": 0.4696453616509717,
+    "tier1_auc_ci": [
+      0.36830851038994733,
+      0.5712722462722462
+    ],
+    "tier0_auc": 0.9979963935083149,
+    "tier0_auc_ci": [
+      0.9935546875,
+      1.0
+    ],
+    "hardblock_recall": 0.5652173913043478,
+    "benign_hard_fp": 0.0,
+    "benign_hard_fp_ci": [
+      0.0,
+      0.11218874692236996
+    ]
+  },
+  "track1_off_target_test_indist": {
+    "n": 275,
+    "n_mal": 223,
+    "n_ben": 52,
+    "tier1_auc": 0.8474905139703345,
+    "tier1_auc_ci": [
+      0.785943015148325,
+      0.9011787337577413
+    ],
+    "tier0_auc": 0.9821490169023801,
+    "tier0_auc_ci": [
+      0.9669002409223276,
+      0.9941956301274484
+    ],
+    "hardblock_recall": 0.8878923766816144,
+    "benign_hard_fp": 0.0,
+    "benign_hard_fp_ci": [
+      0.0,
+      0.06848220870331956
+    ]
+  },
+  "track1_off_target_aug_holdout": {
+    "n": 842,
+    "n_mal": 793,
+    "n_ben": 49,
+    "tier1_auc": 0.5344082147360836,
+    "tier1_auc_ci": [
+      0.4475573024194236,
+      0.6198767863949488
+    ],
+    "tier0_auc": 0.9309519520292353,
+    "tier0_auc_ci": [
+      0.8747346891079796,
+      0.9758064581941733
+    ],
+    "hardblock_recall": 0.5334174022698613,
+    "benign_hard_fp": 0.061224489795918366,
+    "benign_hard_fp_ci": [
+      0.012808421318278853,
+      0.16865890070230113
+    ]
+  }
+}

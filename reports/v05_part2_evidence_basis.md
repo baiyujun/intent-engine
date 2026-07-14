@@ -1,5 +1,13 @@
 # v0.5 Part 2 — Tier2 `evidence_basis` field (information-gap → Tier3 trigger)
 
+> **CORRECTION (51-record relabel rerun, 2026-07-14):** `_126` is benign, and a
+> fresh frozen-Tier2 run returned **grounded-benign 6/6**. The “ground-truth miss,”
+> signal-conflict, and Tier3-trigger descriptions of `_126` below are retracted.
+> ssh-debug returned information_gap 2/3 and grounded 1/3, so that canonical trigger
+> is also run-unstable. Raw data:
+> `reports/relabel51_v05_part2_evidence_basis.json`; full disposition:
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 > **CORRECTION (post-audit, 2026-07-14): `evidence_basis` is not a live Tier3
 > trigger.** This report verifies a Tier2 component output and defines a proposed trigger
 > input. Part 4 implements a standalone investigator, but neither report wires that output into

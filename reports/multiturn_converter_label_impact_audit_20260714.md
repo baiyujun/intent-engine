@@ -1,5 +1,12 @@
 # Multi-turn converter label impact audit
 
+> **CORRECTION (resolved, 2026-07-14): this is the pre-repair impact audit.** All
+> 51 records have now been source-joined and adjudicated as **48 malicious / 3
+> benign**; the converter and five Tier1 consumers were repaired and rerun. The
+> unknown-count and “only `_126` confirmed” statements below describe the audit
+> boundary at `ded1c0a`, not current state. Corrected labels, raw reruns, and
+> conclusion dispositions are in `reports/multiturn_relabel_rerun_20260714.md`.
+
 > **Audit date:** 2026-07-14
 > **Revision inspected:** `a76736e` (code/data are unchanged from audit base `9234a74`)
 > **Scope:** `synth/multiturn_convert.py`, its two committed promptfoo eval inputs, the

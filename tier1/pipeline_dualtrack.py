@@ -24,6 +24,7 @@ from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_sco
 import numpy as np  # noqa: E402
 
 from pipeline import Pipeline  # noqa: E402
+from tier1.eval_data import load_multiturn_holdout  # noqa: E402
 
 DATA = _REPOSITORY / "dataset"
 REPO = _REPOSITORY
@@ -36,13 +37,13 @@ def load_jsonl(path):
 def pipeline_eval(pipe, records, name):
     """Run pipeline over records, return detection metrics + prob-based AUC."""
     probs, preds, ys = [], [], []
-    block = escalate = allow = 0
+    block = defer = escalate = allow = 0
     for r in records:
         v = pipe.run(r)
         is_mal = bool(r.get("label", {}).get("is_malicious"))
         ys.append(int(is_mal))
-        # decision: block/escalate -> flagged(1), allow -> 0
-        pred = 1 if v["final_decision"] in ("block", "escalate") else 0
+        # Any non-release outcome is review-flagged; only allow is cleared.
+        pred = 1 if v["final_decision"] in ("block", "defer", "escalate") else 0
         preds.append(pred)
         # use tier1_prob if available else tier0 signal as the score for AUC
         prob = v.get("tier1_prob")
@@ -53,6 +54,8 @@ def pipeline_eval(pipe, records, name):
         probs.append(float(prob))
         if v["final_decision"] == "block":
             block += 1
+        elif v["final_decision"] == "defer":
+            defer += 1
         elif v["final_decision"] == "escalate":
             escalate += 1
         else:
@@ -74,7 +77,7 @@ def pipeline_eval(pipe, records, name):
     print(
         f"  [pipe:{name}] n={n} mal={n_mal} ben={n_ben} "
         f"AUC={auc:.4f} F1={f1:.4f} Prec={prec:.4f} Rec={rec:.4f} "
-        f"block={block} escalate={escalate} allow={allow} "
+        f"block={block} defer={defer} escalate={escalate} allow={allow} "
         f"TP={tp} FP={fp} TN={tn} FN={fn}",
         file=sys.stderr,
     )
@@ -82,7 +85,7 @@ def pipeline_eval(pipe, records, name):
         "n": n, "n_mal": n_mal, "n_ben": n_ben,
         "AUC": auc, "F1": f1, "Precision": prec, "Recall": rec,
         "TP": tp, "FP": fp, "TN": tn, "FN": fn,
-        "block": block, "escalate": escalate, "allow": allow,
+        "block": block, "defer": defer, "escalate": escalate, "allow": allow,
     }
 
 
@@ -108,14 +111,14 @@ def main():
     print("=" * 70, file=sys.stderr)
     print("PIPELINE TRACK 2 — MULTI-TURN (record level)", file=sys.stderr)
     print("=" * 70, file=sys.stderr)
-    mt_mal_path = DATA / "processed" / "test_holdout_multiturn.jsonl"
-    mt_ben_path = DATA / "processed" / "test_holdout_multiturn_benign.jsonl"
-    if mt_mal_path.exists():
-        mt_mal = load_jsonl(mt_mal_path)
-        mt_ben = load_jsonl(mt_ben_path) if mt_ben_path.exists() else []
-        mt_all = mt_mal + mt_ben
+    mt_reviewed_path = DATA / "processed" / "test_holdout_multiturn.jsonl"
+    if mt_reviewed_path.exists():
+        mt_holdout = load_multiturn_holdout(DATA)
+        mt_all = mt_holdout["records"]
+        counts = mt_holdout["counts"]
         print(
-            f"  multi-turn holdout: {len(mt_mal)} mal + {len(mt_ben)} ben = {len(mt_all)}",
+            f"  multi-turn holdout: {counts['malicious']} mal + "
+            f"{counts['benign']} ben = {counts['total']}",
             file=sys.stderr,
         )
         results["track2_multi_turn"]["multiturn_record"] = pipeline_eval(pipe, mt_all, "multiturn_record")
@@ -123,7 +126,11 @@ def main():
         print("  (multi-turn holdout not available)", file=sys.stderr)
         results["track2_multi_turn"] = {"note": "not generated"}
 
-    out = REPO / "reports" / "part3_pipeline_dualtrack.json"
+    out = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else REPO / "reports" / "part3_pipeline_dualtrack.json"
+    )
     out.write_text(json.dumps(results, indent=2, default=str))
     print(f"\npipeline dual-track written to {out}", file=sys.stderr)
 

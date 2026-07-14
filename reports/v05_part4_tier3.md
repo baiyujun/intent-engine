@@ -1,5 +1,11 @@
 # v0.5 Part 4 — Tier3 implemented: ReadOnlyToolkit + investigative judgment
 
+> **CORRECTION (51-record relabel, 2026-07-14):** `_126` is a grounded-benign
+> model-visible operation, not an information-gap case for Tier3. Any `_126`
+> trigger/example language below is retracted. This does not change the standalone
+> Tier3 fixture implementation or the existing fact that it is not wired into the
+> live pipeline. See `reports/multiturn_relabel_rerun_20260714.md`.
+
 > **CORRECTION (post-audit, 2026-07-14): the "35%-pooled wobble" comparison below
 > mixes two metrics.** In v0.4, `8/23 = 34.8%` is the rate at which all three ssh-debug
 > variants were malicious in the same run, not the individual-verdict malicious rate. The

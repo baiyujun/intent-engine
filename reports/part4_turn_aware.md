@@ -1,5 +1,11 @@
 # Part 4 — Turn-Awareness (session_length)
 
+> **CORRECTION (51-record relabel, 2026-07-14):** the corrected multi-turn prefix
+> AUC is **0.8875 with** session length and **0.9119 without** it (delta -0.0243).
+> The old-label same-code delta is -0.0171. Thus the qualitative conclusion below
+> survives — session length is not the lever — while its historical point estimates
+> are stale. Evidence: `reports/relabel51_{baseline_,}part4_turn_aware_ablation.json`.
+
 ## Check: Does an explicit turn-count feature exist as a direct XGBoost input?
 
 **YES.** `session_length` is at **index 18** (session group), a direct 1-dim feature in the 40-element feature vector returned by `extract_features()`. It is NOT merely an intermediate computation — it is fed straight to XGBoost.

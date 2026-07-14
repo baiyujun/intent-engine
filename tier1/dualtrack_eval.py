@@ -36,6 +36,7 @@ from sklearn.metrics import (  # noqa: E402
 from tier1.features import (  # noqa: E402
     extract_features, build_benign_profile, FEATURE_NAMES, FEATURE_GROUPS,
 )
+from tier1.eval_data import load_multiturn_holdout  # noqa: E402
 from tier1.prefix_eval import prefixes  # noqa: E402
 
 
@@ -153,16 +154,14 @@ def main():
           file=sys.stderr)
     print("=" * 70, file=sys.stderr)
 
-    mt_mal_path = DATA / "processed" / "test_holdout_multiturn.jsonl"
-    mt_ben_path = DATA / "processed" / "test_holdout_multiturn_benign.jsonl"
-
     track2 = {"note": "multi-turn holdout not yet generated"}
-    if mt_mal_path.exists():
-        mt_mal = load_jsonl(mt_mal_path)
-        mt_ben = load_jsonl(mt_ben_path) if mt_ben_path.exists() else []
-        mt_all = mt_mal + mt_ben
+    if (DATA / "processed" / "test_holdout_multiturn.jsonl").exists():
+        mt_holdout = load_multiturn_holdout(DATA)
+        mt_all = mt_holdout["records"]
+        counts = mt_holdout["counts"]
         print(
-            f"  multi-turn holdout: {len(mt_mal)} mal + {len(mt_ben)} ben = {len(mt_all)}",
+            f"  multi-turn holdout: {counts['malicious']} mal + "
+            f"{counts['benign']} ben = {counts['total']}",
             file=sys.stderr,
         )
         # turn-count distribution
@@ -187,8 +186,10 @@ def main():
         track2 = {
             "prefix": eval_with_model(model, X_mt, y_mt, "multi:prefix"),
             "n_records": len(mt_all),
-            "n_mal_records": len(mt_mal),
-            "n_ben_records": len(mt_ben),
+            "n_mal_records": counts["malicious"],
+            "n_ben_records": counts["benign"],
+            "n_reviewed_records": counts["reviewed"],
+            "n_legacy_benign_records": counts["legacy_benign"],
             "prefix_session_length_dist": dict(sorted(sl_dist.items())),
         }
         # Also record-level (whole conversation) for completeness, but prefix is primary
@@ -200,7 +201,11 @@ def main():
         print("  (multi-turn holdout file not found — run Part 1 first)", file=sys.stderr)
 
     # ── write report ──
-    out = REPO / "reports" / "part3_dualtrack_eval.json"
+    out = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else REPO / "reports" / "part3_dualtrack_eval.json"
+    )
     out.parent.mkdir(exist_ok=True)
     results = {
         "track1_single_turn": track1,

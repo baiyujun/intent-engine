@@ -1,5 +1,12 @@
 # Part 4 — v0.3 Final Dual-Track Re-eval (Conservative, per audit)
 
+> **CORRECTION (51-record relabel, 2026-07-14):** the malicious-only track is now
+> **48 records / 188 prefixes**, with **182/188 = 96.81%** at `prob>=0.5`, not
+> 51 / 205 / 95.1%. The increase is caused by relabeling 17 prefixes, not by a
+> changed model. The three reviewed benign records are excluded from this
+> malicious-only view. Evidence: `reports/relabel51_part4_final_dualtrack.json` and
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 ## 范围（按 v0.3 审计决定）
 
 - **多轮良性 40 条作废**（捷径体检：audit/security 词面 gap 1.15 近完美区分，对读文本环节是现成捷径，标注兜不住）。**多轮 = 恶意侧 only，不报良性 FP。**

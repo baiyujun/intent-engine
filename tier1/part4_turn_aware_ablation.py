@@ -28,6 +28,7 @@ from sklearn.metrics import (  # noqa: E402
 from tier1.features import (  # noqa: E402
     extract_features, build_benign_profile, FEATURE_NAMES,
 )
+from tier1.eval_data import load_multiturn_holdout  # noqa: E402
 from tier1.prefix_eval import prefixes  # noqa: E402
 
 DATA = _REPOSITORY / "dataset"
@@ -110,9 +111,7 @@ def main():
     aug_holdout = test_holdout + val_benign
 
     # Multi-turn holdout (Part 1)
-    mt_mal_path = DATA / "processed" / "test_holdout_multiturn.jsonl"
-    mt_ben_path = DATA / "processed" / "test_holdout_multiturn_benign.jsonl"
-    mt_available = mt_mal_path.exists()
+    mt_available = (DATA / "processed" / "test_holdout_multiturn.jsonl").exists()
 
     print("=" * 72, file=sys.stderr)
     print("Part 4: Turn-awareness ablation (session_length index 18)", file=sys.stderr)
@@ -145,9 +144,7 @@ def main():
     # ── TRACK 2: MULTI-TURN (prefix level) ──
     print("\n--- TRACK 2: MULTI-TURN (prefix level) ---", file=sys.stderr)
     if mt_available:
-        mt_mal = load_jsonl(mt_mal_path)
-        mt_ben = load_jsonl(mt_ben_path) if mt_ben_path.exists() else []
-        mt_all = mt_mal + mt_ben
+        mt_all = load_multiturn_holdout(DATA)["records"]
         X_mt_w, y_mt_w, _ = featurize_prefixes(mt_all, profile, False)
         X_mt_wo, y_mt_wo, _ = featurize_prefixes(mt_all, profile, True)
         results["with_session_length"]["track2_multiturn_prefix"] = eval_set(clf_w, X_mt_w, y_mt_w, "WITH  mt_prefix")
@@ -183,7 +180,11 @@ def main():
             tag = "← turn-awareness helps here" if d_auc > 0.01 else ""
             print(f"  {track_key}: ΔAUC={d_auc:+.4f} ΔF1={d_f1:+.4f} {tag}", file=sys.stderr)
 
-    out = REPO / "reports" / "part4_turn_aware_ablation.json"
+    out = (
+        pathlib.Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else REPO / "reports" / "part4_turn_aware_ablation.json"
+    )
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps(results, indent=2, default=str))
     print(f"\nPart 4 ablation written to {out}", file=sys.stderr)

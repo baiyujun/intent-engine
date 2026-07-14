@@ -1,5 +1,12 @@
 # Part 5 + Part 6 — Tier2 v0.4 Final Eval: gate FAILS (honest)
 
+> **CORRECTION (51-record relabel, 2026-07-14):** `_126` is benign for the
+> model-visible operation, so any six-malicious disagreement-set recall/accuracy
+> aggregate in this historical report has an invalid denominator. Preserve its raw
+> per-case behavior, but do not treat the aggregate as ground-truth accuracy.
+> Fresh v0.5 Part 2 results and the corrected label are documented in
+> `reports/multiturn_relabel_rerun_20260714.md`.
+
 > **CORRECTION (synced 2026-07-10, v0.5 Part 0).** The original prose in this
 > file and its gate table described an *earlier* eval run that did not match the
 > machine-recorded `part6_tier2_eval.json` sitting beside it. The `.json` was
