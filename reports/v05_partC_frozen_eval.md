@@ -1,5 +1,21 @@
 # v0.5 Part C — frozen Tier2 re-eval on the 92-case promptfoo set
 
+> **CORRECTION #2 (post-audit, 2026-07-14): the reported percentages are
+> plugin-label agreement, not independent semantic accuracy.** The plugins assigned the labels;
+> their graders were generation-only placeholders and no final-case grading or human
+> adjudication was retained. Thus `39/49 = 79.6%` is arithmetically reproducible only as
+> agreement with generator intent. Of those 49 rows, 10 have majority
+> `evidence_basis=information_gap`: nine malicious-lean rows were counted as correct while the
+> one benign-lean row was counted as an FN, although all ten identify unresolved facts under the
+> evaluated contract. The 83.0%/83.7% methods below do not cure that provenance limit.
+> Comparisons to ssh-debug's "35%" also mix this per-case label agreement with v0.4's
+> all-three-variants gate-pass rate (`8/23`); the comparable ssh-debug individual-verdict rates
+> are `48/69 = 69.6%` (v0.4) and `17/24 = 70.8%` (v0.5). `information_gap` is a component
+> output, not a live Tier3 trigger. Historical raw evidence is at
+> `f52b28e:reports/v05_partC_frozen_eval.json` (object `4e1ff02...`); commit `4ae0131`
+> replaced the current path with the 88-case rerun (object `435708b...`). Evidence: audit commit
+> `9234a74` Findings 3, 6, and 7.
+
 > **CORRECTION (2026-07-13, post-review).** A reviewer (and a 3-agent blind recomputation
 > from the raw JSON, 3/3 agreement) caught an internal inconsistency in the first version
 > of this report: I wrote "排除 (exclude) the 2 data-error cases → 83.7%", but 83.7%
