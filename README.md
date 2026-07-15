@@ -1,3 +1,20 @@
+> [!IMPORTANT]
+> **Archived legacy project**
+>
+> This repository contains the historical implementation of the
+> `intent-engine` layered intent-recognition and online guardrail prototype.
+>
+> It is preserved for research history, experiment reproducibility, and audit
+> purposes. It is no longer under active development and is not the codebase
+> for the current Agent security evaluation and fuzzing system.
+>
+> Active development continues in:
+> <https://github.com/baiyujun/agent-security-eval>
+>
+> The new project uses a clean repository because its domain model, execution
+> architecture, evidence model, and evaluation goals are fundamentally
+> different from this legacy prototype.
+
 # intent-engine
 
 v0 prototype of a layered intent-recognition guardrail for AI agents.
